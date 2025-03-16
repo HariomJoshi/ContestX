@@ -7,8 +7,9 @@ export interface UserSliceType {
 }
 
 export interface UserType {
+  id: number;
   name: String;
   username: String;
   email: String;
-  contestsGiven: number;
+  ratingsChanged: number[];
 }

@@ -12,6 +12,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+// To generate the Er diagram everytime i generate client
+generator erd {
+  provider = "prisma-erd-generator"
+  output = "../ERD.svg"
+}
 
 
 model User {
@@ -33,7 +38,6 @@ model UserContests{
   contestId Int
   contest Contest @relation(fields: [contestId], references: [id])
   @@id([userId, contestId])
-
 }
 
 model Question{

@@ -1,12 +1,20 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+// src/App.tsx
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import NotFoundPage from "./Pages/NotFoundPage";
+import AuthForm from "./Pages/AuthFrom";
+import HomePage from "./Pages/HomePage";
 
-function App() {
-  const [count, setCount] = useState(0);
-
-  return <div className="bg-sky-500">Home Screen</div>;
-}
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/auth" element={<AuthForm />} />
+        <Route path="/:id" element={<HomePage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;

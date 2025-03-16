@@ -1,30 +1,35 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { UserSliceType } from "../../types";
+import { UserSliceType, UserType } from "../../types";
 import { FetchState } from "../../helper";
+import axios from "axios";
 
-export const fetchUserData = createAsyncThunk(
+export const fetchUserData = createAsyncThunk<UserType, string>(
   "user/fetchUserData", // action type prefix
+
   async (userId, thunkAPI) => {
     // payload creator
-    const response = await fetch(
-      `https://localhost:3000/api/v1/user`
-      // backend API here
-    );
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/getUser?userId=${userId}`
+      );
+      return response.data.data;
+    } catch (err) {
+      console.log(err);
+      throw new Error("Some error occured while fetching the user");
     }
-    return response.json();
   }
 );
 
 const initialState: UserSliceType = {
-  status: FetchState.loaded,
-  error: "error message here",
+  status: FetchState.loading,
+  error: "Error message here",
   data: {
+    id: 23,
     name: "Name",
     username: "Username",
     email: "mail@gmail.com",
-    contestsGiven: 1,
+    ratingsChanged: [34],
   },
 };
 
@@ -38,8 +43,9 @@ const userSlice = createSlice({
         state.status = FetchState.loading;
       })
       .addCase(fetchUserData.fulfilled, (state, action) => {
-        state.status = FetchState.failed;
+        state.status = FetchState.loaded;
         state.data = action.payload;
+        console.log(action.payload);
       })
       .addCase(fetchUserData.rejected, (state, action) => {
         state.status = FetchState.failed;
@@ -48,4 +54,4 @@ const userSlice = createSlice({
   },
 });
 export const {} = userSlice.actions;
-export default userSlice;
+export default userSlice.reducer;
