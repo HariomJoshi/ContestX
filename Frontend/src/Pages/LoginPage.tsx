@@ -9,6 +9,9 @@ import { Label } from "@radix-ui/react-label";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setToken } from "@/redux/slices/authSlice";
+import { setUserId } from "@/redux/slices/userSlice";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,6 +23,7 @@ type LoginFormInputs = z.infer<typeof loginSchema>;
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -49,9 +53,9 @@ const LoginForm: React.FC = () => {
         console.log("Login successful");
         console.log(response);
         // save response.data.token in local storage
-        localStorage.setItem("token", response.data.token);
-
-        navigate(`/${response.data.userId}`);
+        dispatch(setToken(response.data.token));
+        dispatch(setUserId(response.data.userId));
+        navigate(`/`);
       })
       .catch((err) => {
         alert(
@@ -61,7 +65,6 @@ const LoginForm: React.FC = () => {
         console.log("Error while loggin in:");
         console.log(err);
       });
-    console.log(data);
   };
 
   return (

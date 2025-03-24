@@ -10,7 +10,7 @@ export async function hashPassword(plainPassword: string): Promise<string> {
       timeCost: 3, // Number of iterations
       parallelism: 1, // Parallelism factor
     });
-    console.log("Hashed password:", hash);
+    // console.log("Hashed password:", hash);
     return hash;
   } catch (error) {
     console.error("Error hashing password:", error);

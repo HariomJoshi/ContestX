@@ -1,5 +1,5 @@
 // src/components/AuthForm.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,9 +8,18 @@ import {
 } from "../components/ui/card";
 import LoginForm from "./LoginPage";
 import RegisterForm from "./RegisterPage";
+import useAuth from "@/customHooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const loggedIn = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (loggedIn) {
+      navigate("/");
+    }
+  }, []);
 
   const toggleForm = () => {
     setIsLogin(!isLogin);

@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { PrismaClient, PrismaPromise, User } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { date, z } from "zod";
 import { hashPassword, verifyPassword } from "../Helper/Hash.js";
@@ -36,27 +36,36 @@ router.post(
 
       // Simulate authentication (replace with real logic)
       const password = await hashPassword(credentials.password);
-      const user = await pClient.user.findFirst({
+      // const user = await pClient.user.findFirst({
+      //   where: {
+      //     email: credentials.email,
+      //   },
+      // });
+      const userfound = await pClient.user.findFirst({
         where: {
           email: credentials.email,
         },
       });
-      if (user === null) {
+      if (userfound === null) {
         // res.status(400).json({ message: "Invalid credentials" });
         next({ status: 401, message: "Invalid Credentials" });
         return;
       }
-      const verified = await verifyPassword(req.body.password, user.password);
 
+      const verified = await verifyPassword(
+        req.body.password,
+        userfound.password
+      );
       const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: userfound.id, email: userfound.email },
         process.env.JWT_SECRET!, // Ensure JWT_SECRET is set in your environment
         { expiresIn: "1h" } // Token expires in 1 hour
       );
-      if (user !== null && verified) {
+
+      if (userfound !== null && verified) {
         res.status(200).json({
           message: "Login successful",
-          userId: user.id,
+          userId: userfound.id,
           token: token,
           // just sending ID on successful login
         });
@@ -80,19 +89,19 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Validate the request body using the signupSchema
-      console.log(req.body);
+      // console.log(req.body);
       const userData = signupSchema.parse(req.body);
-      console.log("Here");
 
       const password: string = await hashPassword(userData.password);
+      const data = {
+        firstName: userData.firstname,
+        lastName: userData.lastname,
+        username: userData.email.split("@")[0],
+        email: userData.email,
+        password: password,
+      };
       const newUser = await pClient.user.create({
-        data: {
-          firstName: userData.firstname,
-          lastName: userData.lastname,
-          username: userData.email.split("@")[0],
-          email: userData.email,
-          password: password,
-        },
+        data,
       });
       // console.log(newUser);
       res.status(201).json({
@@ -102,7 +111,10 @@ router.post(
       if (error instanceof z.ZodError) {
         next({ staus: 400, error: error.errors });
       } else {
-        next({ status: 500 });
+        next({
+          status: 500,
+          message: "DB check kar le, kya pata na kaam kar raha ho!",
+        });
       }
     }
   }

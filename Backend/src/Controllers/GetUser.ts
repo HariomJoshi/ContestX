@@ -5,10 +5,13 @@ const router = Router();
 const pClient = new PrismaClient();
 
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
-  if (req.query.userId === undefined) {
+  if (req.query.userId === undefined || !req.query.userId) {
     next({ status: 400, message: "No query parameteres given" });
   }
   const userId: number = Number(req.query.userId);
+  if (Number.isNaN(userId)) {
+    next({ status: 400, message: "No query parameteres given" });
+  }
   console.log("UserId: " + userId);
 
   const user = await pClient.user.findFirst({

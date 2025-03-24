@@ -36,7 +36,11 @@ const initialState: UserSliceType = {
 const userSlice = createSlice({
   name: "test",
   initialState,
-  reducers: {},
+  reducers: {
+    setUserId: (state, action) => {
+      state.data.id = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchUserData.pending, (state) => {
@@ -53,5 +57,5 @@ const userSlice = createSlice({
       });
   },
 });
-export const {} = userSlice.actions;
+export const { setUserId } = userSlice.actions;
 export default userSlice.reducer;

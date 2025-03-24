@@ -13,3 +13,25 @@ export interface UserType {
   email: String;
   ratingsChanged: number[];
 }
+
+export interface AuthStateType {
+  token: String | null;
+}
+
+export type Contest = {
+  id: string;
+  title: string;
+  description: string;
+  startAt: string; // ISO date string indicating contest start
+  endsAt: string; // ISO date string indicating contest end
+};
+
+export type ContestsPageProps = {
+  contests: Contest[];
+};
+
+export type Question = {
+  id: number;
+  title: string;
+  tags: string[];
+};
