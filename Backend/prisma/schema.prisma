@@ -69,3 +69,12 @@ model SubmissionQuestion{
   question Question @relation(fields: [questionId], references: [id])
   @@id([userId, questionId])
 }
+
+// New Blog model as per provided interface
+model Blog {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+  date        String
+  imageUrl    String
+}

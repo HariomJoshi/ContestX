@@ -17,6 +17,7 @@ import ContestPage from "./Pages/ContestsPage";
 import AvailableQuestions from "./Pages/AvailableQuestions";
 import SolveQuestion from "./Pages/SolveQuestion";
 import CurrentRankingsPage from "./Pages/CurrentRankings";
+import ProfilePage from "./Pages/ProfilePage";
 
 const App: React.FC = () => {
   return (
@@ -37,6 +38,7 @@ const App: React.FC = () => {
           />
           <Route path="/questions" element={<AvailableQuestions />} />
           <Route path="/ongoing-contest" element={<ContestPage />} />
+          <Route path="/profile/:id" element={<ProfilePage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

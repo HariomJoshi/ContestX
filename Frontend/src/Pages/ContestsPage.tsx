@@ -77,7 +77,7 @@ const ContestsPage: React.FC = () => {
         )}
       </section>
       <h2 className="text-2xl font-bold mb-4">Upcoming Contests</h2>
-      <section className="flex flex-row">
+      <section className="flex flex-row overflow-x-auto space-x-4">
         {upcoming.length === 0 ? (
           <p className="text-center text-muted-foreground">
             No upcoming contests at the moment.
@@ -87,7 +87,7 @@ const ContestsPage: React.FC = () => {
         )}
       </section>
       <h2 className="text-2xl font-bold mb-4">Past Contests</h2>
-      <section className="flex flex-row">
+      <section className="flex flex-row overflow-x-auto space-x-4">
         {past.length === 0 ? (
           <p className="text-center text-muted-foreground">
             No past contests available.
