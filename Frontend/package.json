@@ -43,6 +43,7 @@
     "recharts": "^2.15.1",
     "redux-persist": "^6.0.0",
     "redux-toolkit": "^1.1.2",
+    "rehype-highlight": "^7.0.2",
     "repo": "^0.0.15",
     "shadcn": "^2.4.0-canary.12",
     "sonner": "^2.0.1",

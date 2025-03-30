@@ -38,7 +38,7 @@ const ContestComponent = (contest: Contest) => {
         </p>
       </CardContent>
       <CardFooter className="flex justify-end space-x-2">
-        <Button variant="outline">View Details</Button>
+        <Button variant="outline">Register</Button>
         <Button
           variant="secondary"
           onClick={() => navigate(`/rankings/${contest.id}`)}

@@ -35,3 +35,10 @@ export type Question = {
   title: string;
   tags: string[];
 };
+
+export type Blogs = {
+  title: String;
+  description: String;
+  imageUrl: String;
+  Content: JSON;
+};

@@ -18,6 +18,8 @@ import AvailableQuestions from "./Pages/AvailableQuestions";
 import SolveQuestion from "./Pages/SolveQuestion";
 import CurrentRankingsPage from "./Pages/CurrentRankings";
 import ProfilePage from "./Pages/ProfilePage";
+import BlogRenderer from "./components/BlogRenderer";
+import Footer from "./components/Footer";
 
 const App: React.FC = () => {
   return (
@@ -26,6 +28,7 @@ const App: React.FC = () => {
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/" element={<UserRoutes />}>
           <Route index element={<HomePage />} />
+          <Route path="/blog/:id" element={<BlogRenderer />} />
           <Route element={<PrivateRoute />}>
             {/* make this route protected */}
             <Route path="/make-contest" element={<MakeContests />} />
@@ -49,10 +52,12 @@ const App: React.FC = () => {
 
 const UserRoutes: React.FC = () => {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <NavBar />
-      {/* Outlet renders the nested route element */}
-      <Outlet />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+      <Footer />
     </div>
   );
 };

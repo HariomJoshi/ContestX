@@ -77,4 +77,5 @@ model Blog {
   description String
   date        String
   imageUrl    String
+  content     Json 
 }

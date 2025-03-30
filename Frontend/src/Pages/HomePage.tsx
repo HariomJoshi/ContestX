@@ -14,7 +14,7 @@ const HomePage: React.FC = () => {
     if (id != null) {
       dispatch(fetchUserData(id));
     }
-  }, []);
+  }, [id]);
 
   const status: FetchState = useSelector((state: RootState) => {
     // console.log(state.user);

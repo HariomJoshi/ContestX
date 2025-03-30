@@ -1,8 +1,9 @@
 import React from "react";
 import { Contest } from "@/types";
 import ContestComponent from "@/components/ContestComponent";
-// Import shadcn/ui components (ensure these paths match your project structure)
+import { motion } from "framer-motion";
 
+// Sample contests data
 const ContestsPage: React.FC = () => {
   const contests: Contest[] = [
     {
@@ -16,23 +17,22 @@ const ContestsPage: React.FC = () => {
       id: "1",
       title: "Ongoing Coding Challenge",
       description: "Solve coding puzzles and win exciting prizes!",
-      startAt: new Date(Date.now() - 86400000).toISOString(), // started 1 day ago
-      endsAt: new Date(Date.now() + 86400000).toISOString(), // ends in 1 day
-    },
-
-    {
-      id: "1",
-      title: "Ongoing Coding Challenge",
-      description: "Solve coding puzzles and win exciting prizes!",
-      startAt: new Date(Date.now() - 86400000).toISOString(), // started 1 day ago
-      endsAt: new Date(Date.now() + 86400000).toISOString(), // ends in 1 day
+      startAt: new Date(Date.now() - 86400000).toISOString(),
+      endsAt: new Date(Date.now() + 86400000).toISOString(),
     },
     {
       id: "1",
       title: "Ongoing Coding Challenge",
       description: "Solve coding puzzles and win exciting prizes!",
-      startAt: new Date(Date.now() - 86400000).toISOString(), // started 1 day ago
-      endsAt: new Date(Date.now() + 86400000).toISOString(), // ends in 1 day
+      startAt: new Date(Date.now() - 86400000).toISOString(),
+      endsAt: new Date(Date.now() + 86400000).toISOString(),
+    },
+    {
+      id: "1",
+      title: "Ongoing Coding Challenge",
+      description: "Solve coding puzzles and win exciting prizes!",
+      startAt: new Date(Date.now() - 86400000).toISOString(),
+      endsAt: new Date(Date.now() + 86400000).toISOString(),
     },
     {
       id: "2",
@@ -52,7 +52,7 @@ const ContestsPage: React.FC = () => {
 
   const now = new Date();
 
-  // Filter contests based on the current time
+  // Filter contests based on current time
   const ongoing = contests.filter(
     (contest) =>
       new Date(contest.startAt) <= now && new Date(contest.endsAt) >= now
@@ -62,39 +62,101 @@ const ContestsPage: React.FC = () => {
   );
   const past = contests.filter((contest) => new Date(contest.endsAt) < now);
 
-  // Render a contest card with a dynamic badge
+  // Framer Motion variants for container and individual contest cards
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-10">
-      <h2 className="text-2xl font-bold mb-4">Ongoing Contests</h2>
-      <section className="flex flex-row overflow-x-auto space-x-4">
-        {ongoing.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            No ongoing contests at the moment.
-          </p>
-        ) : (
-          ongoing.map(ContestComponent)
-        )}
+      {/* Ongoing Contests */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Ongoing Contests</h2>
+        <motion.div
+          className="flex flex-row overflow-x-auto space-x-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {ongoing.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              No ongoing contests at the moment.
+            </p>
+          ) : (
+            ongoing.map((contest, index) => (
+              <motion.div
+                key={`${contest.id}-${index}`}
+                variants={cardVariants}
+                whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+              >
+                <ContestComponent {...contest} />
+              </motion.div>
+            ))
+          )}
+        </motion.div>
       </section>
-      <h2 className="text-2xl font-bold mb-4">Upcoming Contests</h2>
-      <section className="flex flex-row overflow-x-auto space-x-4">
-        {upcoming.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            No upcoming contests at the moment.
-          </p>
-        ) : (
-          upcoming.map(ContestComponent)
-        )}
+
+      {/* Upcoming Contests */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Upcoming Contests</h2>
+        <motion.div
+          className="flex flex-row overflow-x-auto space-x-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {upcoming.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              No upcoming contests at the moment.
+            </p>
+          ) : (
+            upcoming.map((contest, index) => (
+              <motion.div
+                key={`${contest.id}-${index}`}
+                variants={cardVariants}
+                whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+              >
+                <ContestComponent {...contest} />
+              </motion.div>
+            ))
+          )}
+        </motion.div>
       </section>
-      <h2 className="text-2xl font-bold mb-4">Past Contests</h2>
-      <section className="flex flex-row overflow-x-auto space-x-4">
-        {past.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            No past contests available.
-          </p>
-        ) : (
-          past.map(ContestComponent)
-        )}
+
+      {/* Past Contests */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Past Contests</h2>
+        <motion.div
+          className="flex flex-row overflow-x-auto space-x-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {past.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              No past contests available.
+            </p>
+          ) : (
+            past.map((contest, index) => (
+              <motion.div
+                key={`${contest.id}-${index}`}
+                variants={cardVariants}
+                whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+              >
+                <ContestComponent {...contest} />
+              </motion.div>
+            ))
+          )}
+        </motion.div>
       </section>
     </div>
   );

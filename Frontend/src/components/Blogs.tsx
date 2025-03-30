@@ -1,5 +1,12 @@
 // src/Pages/HomePage.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Loader from "./Loader";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { FetchState } from "@/helper";
+import { fetchBlogs } from "@/redux/slices/blogsSlice";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface Blog {
   id: number;
@@ -9,96 +16,118 @@ interface Blog {
   imageUrl: string;
 }
 
-// Dummy data for demonstration
-const latestBlog: Blog = {
-  id: 1,
-  title: "Latest Blog Title",
-  description:
-    "This is the latest blog description. It is concise and informative.",
-  date: "2024-12-01",
-  imageUrl: "https://via.placeholder.com/800x400",
+// Variants for container and cards
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
 };
 
-const oldBlogs: Blog[] = [
-  {
-    id: 2,
-    title: "Old Blog 1",
-    description: "Description for old blog 1.",
-    date: "2024-11-01",
-    imageUrl: "https://via.placeholder.com/400x200",
-  },
-  {
-    id: 3,
-    title: "Old Blog 2",
-    description: "Description for old blog 2.",
-    date: "2024-10-15",
-    imageUrl: "https://via.placeholder.com/400x200",
-  },
-  {
-    id: 4,
-    title: "Old Blog 3",
-    description: "Description for old blog 3.",
-    date: "2024-09-20",
-    imageUrl: "https://via.placeholder.com/400x200",
-  },
-  {
-    id: 5,
-    title: "Old Blog 4",
-    description: "Description for old blog 4.",
-    date: "2024-08-30",
-    imageUrl: "https://via.placeholder.com/400x200",
-  },
-];
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
 const Blogs: React.FC = () => {
+  const fetchingBlogs = useSelector((state: RootState) => state.blogs.status);
+  const dispatch = useDispatch<AppDispatch>();
+  const blogs = useSelector((state: RootState) => state.blogs.data);
+  const navigate = useNavigate();
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // Change to 12 if needed
+
+  useEffect(() => {
+    dispatch(fetchBlogs());
+  }, [dispatch]);
+
+  // Handler for navigating to blog detail page
+  const handleClick = (blogId: number) => {
+    navigate(`/blog/${blogId}`);
+  };
+
+  // Calculate pagination details
+  const totalPages = Math.ceil(blogs.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBlogs = blogs.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePrev = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Latest Blog Section */}
-      <section className="p-6">
-        <h2 className="text-3xl font-bold mb-4">Latest Blog</h2>
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <img
-            src={latestBlog.imageUrl}
-            alt={latestBlog.title}
-            className="w-full h-64 object-cover"
-          />
-          <div className="p-4">
-            <h3 className="text-2xl font-semibold">{latestBlog.title}</h3>
-            <p className="text-gray-600 text-sm">{latestBlog.date}</p>
-            <p className="mt-2 text-gray-800">{latestBlog.description}</p>
+    <>
+      {fetchingBlogs === FetchState.loading ? (
+        <Loader />
+      ) : (
+        <div className="min-h-screen flex flex-col">
+          <section className="p-6 flex-1">
+            <h2 className="text-3xl font-bold mb-4">Blogs</h2>
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {currentBlogs.map((blog: Blog) => (
+                <motion.div
+                  key={blog.id}
+                  className="bg-white shadow-md rounded-lg overflow-hidden cursor-pointer p-4 flex flex-col justify-between"
+                  variants={cardVariants}
+                  whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
+                  onClick={() => handleClick(blog.id)}
+                >
+                  <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
+                  <p className="text-gray-600 text-sm mb-2">{blog.date}</p>
+                  <p className="text-gray-800">{blog.description}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </section>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-center space-x-4 p-4">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handlePrev}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded bg-blue-500 text-white ${
+                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Prev
+            </motion.button>
+            <span className="text-lg">
+              Page {currentPage} of {totalPages}
+            </span>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded bg-blue-500 text-white ${
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+            >
+              Next
+            </motion.button>
           </div>
         </div>
-      </section>
-
-      {/* Old Blogs Section */}
-      <section className="p-6">
-        <h2 className="text-3xl font-bold mb-4">Old Blogs</h2>
-        <div className="flex space-x-4 overflow-x-auto">
-          {oldBlogs.map((blog) => (
-            <div
-              key={blog.id}
-              className="min-w-[250px] bg-white shadow-md rounded-lg overflow-hidden"
-            >
-              <img
-                src={blog.imageUrl}
-                alt={blog.title}
-                className="w-full h-40 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-xl font-semibold">{blog.title}</h3>
-                <p className="text-gray-600 text-sm">{blog.date}</p>
-                <p className="mt-2 text-gray-800">{blog.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Professional Footer */}
-      <footer className="mt-auto bg-gray-800 text-white py-4 text-center">
-        <p className="text-lg font-semibold">ContestX</p>
-      </footer>
-    </div>
+      )}
+    </>
   );
 };
 

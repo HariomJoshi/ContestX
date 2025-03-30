@@ -1,4 +1,3 @@
-// QuestionsPage.tsx
 import React from "react";
 import { Input } from "@/components/ui/input"; // shadcn Input component
 import { Card } from "@/components/ui/card"; // shadcn Card component
@@ -6,6 +5,11 @@ import { Badge } from "@/components/ui/badge"; // shadcn Badge component
 import { Button } from "@/components/ui/button"; // shadcn Button component
 import { Question } from "@/types";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
+// Motion-wrapped components
+const MotionCard = motion(Card);
+const MotionButton = motion(Button);
 
 // Dummy questions data
 const questions: Question[] = [
@@ -45,9 +49,19 @@ const AvailableQuestions: React.FC = () => {
       </div>
 
       {/* Questions List */}
-      <div className="grid gap-4">
+      <motion.div
+        className="grid gap-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         {questions.map((question) => (
-          <Card key={question.id} className="p-4 relative">
+          <MotionCard
+            key={question.id}
+            className="p-4 relative"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
             <h2 className="text-xl font-semibold mb-2">{question.title}</h2>
             <div className="flex flex-wrap gap-2 mb-4">
               {question.tags.map((tag) => (
@@ -56,15 +70,17 @@ const AvailableQuestions: React.FC = () => {
                 </Badge>
               ))}
             </div>
-            <Button
+            <MotionButton
               onClick={() => handleSolveQuestion(question.id)}
               className="absolute bottom-4 right-4 w-1/5"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
             >
               Solve Question
-            </Button>
-          </Card>
+            </MotionButton>
+          </MotionCard>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
