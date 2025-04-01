@@ -2,21 +2,29 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { FetchState } from "@/helper";
 
+interface BlogContent {
+  section: string;
+  text: string;
+  subsections?: SubsectionBlogContent[];
+}
+
+interface SubsectionBlogContent {
+  subsection: string;
+  text: string;
+}
+
+interface Blog {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  imageUrl: string;
+  content: BlogContent[];
+}
+
 const initialState = {
   status: FetchState.loading,
-  data: [
-    {
-      title: "Title here",
-      description: "Description here",
-      imageUrl: "www.url.com",
-      content: [
-        {
-          section: "Random section",
-          text: "Description about the section",
-        },
-      ],
-    },
-  ],
+  data: [] as Blog[],
 };
 
 export const fetchBlogs = createAsyncThunk(

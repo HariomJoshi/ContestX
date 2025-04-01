@@ -20,57 +20,68 @@ generator erd {
 
 
 model User {
-  id         Int      @id @default(autoincrement())
-  username   String   @unique
+  id         Int                   @id @default(autoincrement())
+  username   String                @unique
   password   String 
   firstName  String
   lastName   String
-  email String
+  email      String
+  // Many-to-many: A user can solve many questions.
+  solvedQuestions SubmissionQuestion[]
+  // Many-to-many: A user participates in many contests.
   contests_participated UserContests[]
-  rating_changed Int[]
-  submissions SubmissionQuestion[]
+  rating_changed        Int[]
 }
 
-// Joining table
-model UserContests{
-  userId Int
-  user User @relation(fields: [userId], references: [id])
-  contestId Int
-  contest Contest @relation(fields: [contestId], references: [id])
-  @@id([userId, contestId])
-}
-
-model Question{
-  id Int @id @default(autoincrement())
-  title String
+model Question {
+  id          Int                   @id @default(autoincrement())
+  title       String
   description String
-  testCases String
-  checker String
-  contestId Int
-  contest Contest @relation(fields: [contestId], references: [id])
-  submittedby SubmissionQuestion[]
+  testCases   String
+  tags        String[]
+  // Many-to-many: A question can be solved by many users.
+  solvedBy    SubmissionQuestion[]
+  // Remove direct contestId field and use join table instead.
+  contestRelations ContestQuestion[]
 }
 
-model Contest{
-  id Int @id @default(autoincrement())
-  questions Question[]
-  participants UserContests[]
-  duration Int[]
-  start_time DateTime
-  end_time DateTime
+model Contest {
+  id                Int                   @id @default(autoincrement())
+  // Many-to-many: A contest can have many questions.
+  contestQuestions  ContestQuestion[]
+  // Many-to-many: A contest has many participants.
+  participants      UserContests[]
+  duration          Int               
+  start_time        DateTime
+  end_time          DateTime
 }
 
-model SubmissionQuestion{
-  userId Int
-  user User @relation(fields: [userId], references: [id])
-  verdict Boolean
-  time DateTime @default(now())
+model SubmissionQuestion {
+  userId     Int
+  user       User    @relation(fields: [userId], references: [id])
   questionId Int
-  question Question @relation(fields: [questionId], references: [id])
+  question   Question  @relation(fields: [questionId], references: [id])
+  verdict    Boolean
+  time       DateTime  @default(now())
   @@id([userId, questionId])
 }
 
-// New Blog model as per provided interface
+model UserContests {
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  contestId Int
+  contest   Contest @relation(fields: [contestId], references: [id])
+  @@id([userId, contestId])
+}
+
+model ContestQuestion {
+  contestId  Int
+  contest    Contest  @relation(fields: [contestId], references: [id])
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+  @@id([contestId, questionId])
+}
+
 model Blog {
   id          Int    @id @default(autoincrement())
   title       String

@@ -7,6 +7,7 @@ import {
   Code,
   Menu,
   X,
+  FileQuestion,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,6 +44,11 @@ const NavBar = () => {
       href: "/questions",
       label: "Solve Questions",
       icon: <Code className="w-5 h-5" />,
+    },
+    {
+      href: "/add-question",
+      label: "Add Question",
+      icon: <FileQuestion className="w-5 h-5" />,
     },
   ];
 

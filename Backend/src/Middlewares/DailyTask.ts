@@ -14,9 +14,9 @@ const pClient = new PrismaClient();
 // Schedule a task to run every day at midnight (server time)
 // The cron expression '0 0 * * *' means: minute 0, hour 0, every day.
 // The cron expression '* * * * *' means: every miute.
-export default cron.schedule("0 0 * * *", async () => {
+export default cron.schedule("0 * * * *", async () => {
   //   console.log("Running daily task at midnight");
-  console.log("running every minute");
+  console.log("running every hour");
 
   //   const blog;
   try {

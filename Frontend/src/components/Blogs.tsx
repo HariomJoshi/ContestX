@@ -36,6 +36,7 @@ const Blogs: React.FC = () => {
   const fetchingBlogs = useSelector((state: RootState) => state.blogs.status);
   const dispatch = useDispatch<AppDispatch>();
   const blogs = useSelector((state: RootState) => state.blogs.data);
+  // console.log(blogs);
   const navigate = useNavigate();
 
   // Pagination state

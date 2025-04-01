@@ -20,6 +20,7 @@ import CurrentRankingsPage from "./Pages/CurrentRankings";
 import ProfilePage from "./Pages/ProfilePage";
 import BlogRenderer from "./components/BlogRenderer";
 import Footer from "./components/Footer";
+import AddQuestion from "./pages/AddQuestion";
 
 const App: React.FC = () => {
   return (
@@ -34,6 +35,7 @@ const App: React.FC = () => {
             <Route path="/make-contest" element={<MakeContests />} />
             <Route path="/solve" element={<SolvePage />} />
             <Route path="/questions/:id" element={<SolveQuestion />} />
+            <Route path="/add-question" element={<AddQuestion />} />
           </Route>
           <Route
             path="/rankings/:contestId"
