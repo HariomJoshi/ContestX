@@ -20,7 +20,8 @@ import CurrentRankingsPage from "./Pages/CurrentRankings";
 import ProfilePage from "./Pages/ProfilePage";
 import BlogRenderer from "./components/BlogRenderer";
 import Footer from "./components/Footer";
-import AddQuestion from "./pages/AddQuestion";
+import AddQuestion from "./Pages/AddQuestion";
+import ContestArea from "./Pages/ContestArea";
 
 const App: React.FC = () => {
   return (
@@ -36,6 +37,7 @@ const App: React.FC = () => {
             <Route path="/solve" element={<SolvePage />} />
             <Route path="/questions/:id" element={<SolveQuestion />} />
             <Route path="/add-question" element={<AddQuestion />} />
+            <Route path="/contest/:contestId" element={<ContestArea />} />
           </Route>
           <Route
             path="/rankings/:contestId"

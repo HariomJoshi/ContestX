@@ -61,19 +61,24 @@ const AddQuestion = () => {
     e.preventDefault();
 
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/questions`, {
-        title,
-        description,
-        constraints,
-        testCases,
-        tags,
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/questions`,
+        {
+          title,
+          description,
+          constraints,
+          testCases,
+          tags,
+        }
+      );
 
-      toast.success("Question added successfully!");
-      navigate("/questions");
+      if (response.status === 201) {
+        toast.success("Question added successfully!");
+        navigate("/questions");
+      }
     } catch (error) {
+      console.error("Error adding question:", error);
       toast.error("Failed to add question");
-      console.error(error);
     }
   };
 
@@ -102,6 +107,7 @@ const AddQuestion = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter question description"
                 required
+                className="min-h-[200px]"
               />
             </div>
 
@@ -110,35 +116,9 @@ const AddQuestion = () => {
               <Textarea
                 value={constraints}
                 onChange={(e) => setConstraints(e.target.value)}
-                placeholder="Enter question constraints"
+                placeholder="Enter question constraints (e.g., 1 ≤ n ≤ 10^5)"
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Tags</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {tags.map((tag) => (
-                  <div
-                    key={tag}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center gap-2"
-                  >
-                    <span>{tag}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="hover:text-blue-900"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <Input
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleAddTag}
-                placeholder="Add tags (press Enter)"
+                className="min-h-[100px]"
               />
             </div>
 
@@ -195,6 +175,33 @@ const AddQuestion = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded"
+                  >
+                    <span className="text-sm">{tag}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Input
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+                placeholder="Add tags (press Enter)"
+              />
             </div>
 
             <div className="flex justify-end space-x-4">

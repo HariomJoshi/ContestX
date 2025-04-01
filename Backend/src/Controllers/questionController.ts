@@ -19,6 +19,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         description,
         testCases: testCasesString,
         tags: questionTags,
+        constraints,
       },
     });
 
@@ -54,7 +55,7 @@ export const getQuestions = async (req: Request, res: Response) => {
       ...question,
       testCases: JSON.parse(question.testCases),
     }));
-
+    console.log(questionsWithParsedTestCases);
     res.json(questionsWithParsedTestCases);
   } catch (error) {
     console.error("Error fetching questions:", error);

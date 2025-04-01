@@ -38,6 +38,7 @@ model Question {
   title       String
   description String
   testCases   String
+  constraints String @default("")
   tags        String[]
   // Many-to-many: A question can be solved by many users.
   solvedBy    SubmissionQuestion[]
@@ -47,6 +48,8 @@ model Question {
 
 model Contest {
   id                Int                   @id @default(autoincrement())
+  title             String
+  description       String
   // Many-to-many: A contest can have many questions.
   contestQuestions  ContestQuestion[]
   // Many-to-many: A contest has many participants.

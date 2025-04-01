@@ -1,5 +1,5 @@
 // src/Pages/MakeContest.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -18,38 +18,97 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 interface Question {
   id: number;
   title: string;
+  description: string;
+  testCases: string;
+  constraints: string;
+  tags: string[];
 }
 
-// Sample questions – in a real application, these might come from an API or context.
-const sampleQuestions: Question[] = [
-  { id: 1, title: "2Sum" },
-  { id: 2, title: "3Sum" },
-  { id: 3, title: "Find the min array" },
-  { id: 4, title: "Find the min array" },
-];
-
 const MakeContests: React.FC = () => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [selectedQuestion, setSelectedQuestion] = useState<string>("");
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/questions`
+        );
+        setAvailableQuestions(response.data);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+        toast.error("Failed to fetch questions");
+      }
+    };
+
+    fetchQuestions();
+  }, []);
+
+  const handleAddQuestion = () => {
+    if (questions.length >= 4) {
+      toast.error("Maximum 4 questions allowed");
+      return;
+    }
+    setQuestions([...questions, availableQuestions[0]]);
+  };
+
+  const handleRemoveQuestion = (index: number) => {
+    setQuestions(questions.filter((_, i) => i !== index));
+  };
+
+  const handleQuestionChange = (index: number, questionId: number) => {
+    const selectedQuestion = availableQuestions.find(
+      (q) => q.id === questionId
+    );
+    if (selectedQuestion) {
+      const newQuestions = [...questions];
+      newQuestions[index] = selectedQuestion;
+      setQuestions(newQuestions);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Replace this with your form submission logic
-    console.log("Creating contest with data:", {
-      title,
-      description,
-      startTime,
-      endTime,
-      selectedQuestion,
-    });
+    if (questions.length === 0) {
+      toast.error("Please add at least one question");
+      return;
+    }
+    if (questions.length > 4) {
+      toast.error("Maximum 4 questions allowed");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/contests`, {
+        title,
+        description,
+        startTime: `${date}T${startTime}`,
+        endTime: `${date}T${endTime}`,
+        questionIds: questions.map((q) => q.id),
+      });
+      toast.success("Contest created successfully");
+      navigate("/contests");
+    } catch (error) {
+      console.error("Error creating contest:", error);
+      toast.error("Failed to create contest");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,6 +132,7 @@ const MakeContests: React.FC = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter contest title"
               className="mt-1"
+              required
             />
           </div>
           {/* Contest Description */}
@@ -89,23 +149,24 @@ const MakeContests: React.FC = () => {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter contest description"
               className="mt-1"
+              required
             />
           </div>
-          {/* date */}
+          {/* Date */}
           <div>
             <label
               htmlFor="date"
               className="block text-sm font-medium text-gray-700"
             >
-              Start Time
+              Contest Date
             </label>
             <Input
               id="date"
-              type="Date"
+              type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              placeholder="Date"
               className="mt-1"
+              required
             />
           </div>
           {/* Start Time */}
@@ -121,8 +182,8 @@ const MakeContests: React.FC = () => {
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              placeholder="Start Time"
               className="mt-1"
+              required
             />
           </div>
           {/* End Time */}
@@ -138,42 +199,61 @@ const MakeContests: React.FC = () => {
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              placeholder="End Time"
               className="mt-1"
+              required
             />
           </div>
-          {/* Question Selector */}
+          {/* Questions */}
           <div>
-            <label
-              htmlFor="question-select"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Select a Question
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Questions (Max 4)
             </label>
-            <Select onValueChange={(value) => setSelectedQuestion(value)}>
-              <SelectTrigger id="question-select" className="mt-1">
-                <SelectValue placeholder="Choose a question" />
-              </SelectTrigger>
-              <SelectContent>
-                {sampleQuestions.map((question) => (
-                  <SelectItem key={question.id} value={question.id.toString()}>
-                    {question.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-4">
+              {questions.map((question, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <Select
+                    value={question.id.toString()}
+                    onValueChange={(value) =>
+                      handleQuestionChange(index, parseInt(value))
+                    }
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select a question" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableQuestions.map((q) => (
+                        <SelectItem key={q.id} value={q.id.toString()}>
+                          {q.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => handleRemoveQuestion(index)}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddQuestion}
+                disabled={questions.length >= 4}
+                className="w-full"
+              >
+                Add Question
+              </Button>
+            </div>
           </div>
         </CardContent>
         <CardFooter>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full py-5"
-          >
-            <Button type="submit" className="w-full">
-              Create Contest
-            </Button>
-          </motion.div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Creating..." : "Create Contest"}
+          </Button>
         </CardFooter>
       </form>
     </Card>
