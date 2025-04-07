@@ -8,6 +8,7 @@ export const createQuestion = async (req: Request, res: Response) => {
     const { title, description, constraints, testCases, tags } = req.body;
 
     // Convert testCases array to string format
+    console.log(testCases);
     const testCasesString = JSON.stringify(testCases);
 
     // Ensure tags is an array of strings

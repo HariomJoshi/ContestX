@@ -48,7 +48,7 @@ export const generateBlog = async (topic: string): Promise<Blog> => {
 
   const apiKey = process.env.DEEPSEEK_API_KEY_FREE;
   if (!apiKey) {
-    throw new Error("Missing OpenAI API Key");
+    throw new Error("Missing DeepseekAI API Key");
   }
   const openai = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",

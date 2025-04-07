@@ -102,7 +102,7 @@ const MakeContests: React.FC = () => {
         questionIds: questions.map((q) => q.id),
       });
       toast.success("Contest created successfully");
-      navigate("/contests");
+      navigate("/ongoing-contest");
     } catch (error) {
       console.error("Error creating contest:", error);
       toast.error("Failed to create contest");

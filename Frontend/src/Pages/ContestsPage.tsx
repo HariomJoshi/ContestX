@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import axios from "axios";
 import OngoingContest from "@/components/OngoingContest";
 
-interface Contest {
+export interface Contest {
   id: number;
   duration: number;
   start_time: string;
   end_time: string;
+  title: string;
+  description: string;
   contestQuestions: {
     question: {
       id: number;

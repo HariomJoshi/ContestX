@@ -23,16 +23,27 @@ import {
   XCircle,
   GripVertical,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
-interface Question {
+interface TestCase {
+  input: string;
+  output: string;
+}
+
+export interface Question {
   id: number;
   title: string;
   description: string;
+  testCases: TestCase[];
   constraints: string;
-  testCases: {
-    input: string;
-    output: string;
-  }[];
   tags: string[];
 }
 
@@ -44,11 +55,13 @@ interface TestResult {
 }
 
 interface SolveQuestionProps {
-  question?: Question;
+  question: Question;
+  contestId?: number;
 }
 
 const SolveQuestion: React.FC<SolveQuestionProps> = ({
   question: propQuestion,
+  contestId,
 }) => {
   const { id } = useParams<{ id: string }>();
   const [question, setQuestion] = useState<Question | null>(
@@ -57,15 +70,45 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
   const [loading, setLoading] = useState(!propQuestion);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [submissionVisible, setSubmissionVisible] = useState(false);
-  const [language, setLanguage] = useState<string>("javascript");
+  const [language, setLanguage] = useState("java");
   const [monacoTheme, setMonacoTheme] = useState<"vs-light" | "vs-dark">(
     "vs-dark"
   );
-  const [code, setCode] = useState("// Write your solution here...");
+  const [code, setCode] = useState(`import java.util.*;
+
+public class Solution {
+ 
+    public static void main(String[] args) {
+        try {
+            int t;
+            Scanner scan = new Scanner(System.in);
+            t = scan.nextInt();
+            while(t-- != 0){
+                solve();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new NullPointerException("Some Error Occured");
+        }
+    }
+
+    private static void solve(){
+        // Write your solution here
+        
+    }
+}`);
   const [resultsVisible, setResultsVisible] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [editorWidth, setEditorWidth] = useState(50); // percentage
   const separatorRef = useRef<HTMLDivElement>(null);
+  const [output, setOutput] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
+  const [activeTab, setActiveTab] = useState<"description" | "submissions">(
+    "description"
+  );
+  const [selectedLanguage, setSelectedLanguage] = useState("java");
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  console.log(question);
 
   useEffect(() => {
     if (propQuestion) {
@@ -98,35 +141,71 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
     });
   }, []);
 
-  const handleRun = async () => {
-    if (!question) return;
+  useEffect(() => {
+    if (!question?.testCases) return;
+    const visibleTestCase: TestCase[] = question.testCases;
+    setTestCases(visibleTestCase);
+  }, [question?.testCases]);
 
+  const handleRunCode = async () => {
+    setIsRunning(true);
+    setResultsVisible(true);
     try {
-      // Here you would typically send the code to your backend for execution
-      // For now, we'll simulate test results
-      const results: TestResult[] = question.testCases.map((testCase) => {
-        // This is a mock implementation - replace with actual code execution
-        const actualOutput = "Mock output"; // Replace with actual code execution
-        const passed = actualOutput.trim() === testCase.output.trim();
-
-        return {
-          input: testCase.input,
-          expectedOutput: testCase.output,
-          actualOutput,
-          passed,
-        };
-      });
-
-      setTestResults(results);
-      setResultsVisible(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/run`,
+        {
+          code,
+          language: selectedLanguage,
+          testCases: testCases, // Only run first test case for quick testing
+          questionId: id,
+        }
+      );
+      setOutput(response.data.output);
+      setTestResults([
+        {
+          input: testCases[0].input,
+          expectedOutput: testCases[0].output,
+          actualOutput: response.data.output,
+          passed: response.data.output.trim() === testCases[0].output.trim(),
+        },
+      ]);
     } catch (error) {
       console.error("Error running code:", error);
       toast.error("Failed to run code");
+    } finally {
+      setIsRunning(false);
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setIsRunning(true);
     setSubmissionVisible(true);
+    try {
+      const response = await axios.post(
+        // TODO: send code to backend , backend will load test cases and send them to judge0 api
+        `${import.meta.env.VITE_BACKEND_URL}/submit`,
+        {
+          code,
+          language: selectedLanguage,
+          questionId: question?.id,
+          ...(contestId && { contestId }),
+          testCases,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("All test cases passed!");
+      } else {
+        toast.error(`Failed: ${response.data.message}`);
+      }
+
+      setOutput(response.data.output);
+    } catch (error) {
+      console.error("Error submitting code:", error);
+      toast.error("Failed to submit code");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -196,7 +275,7 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
             </div>
           </div>
           <div className="flex gap-4">
-            <Button onClick={handleRun} variant="outline">
+            <Button onClick={handleRunCode} variant="outline">
               <FileCode className="w-4 h-4 mr-2" />
               Run
             </Button>
@@ -211,7 +290,7 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
       <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden relative">
         {/* Problem Statement Section */}
         <div
-          className="w-full p-4 space-y-4 overflow-auto"
+          className="w-full lg:w-auto p-4 space-y-4 overflow-auto"
           style={{
             width: window.innerWidth >= 1024 ? `${editorWidth}%` : "100%",
           }}
@@ -247,13 +326,13 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
                   <Clock className="w-5 h-5 text-blue-500" />
                   <h2 className="text-xl font-bold">Sample Test Cases</h2>
                 </div>
-                <Button onClick={handleRun} variant="outline" size="sm">
+                <Button onClick={handleRunCode} variant="outline" size="sm">
                   <FileCode className="w-4 h-4 mr-2" />
                   Run
                 </Button>
               </div>
               <div className="space-y-4">
-                {question.testCases.map((test, index) => (
+                {testCases.map((test, index) => (
                   <div
                     key={index}
                     className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg"
@@ -315,7 +394,7 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
 
         {/* Code Editor Section */}
         <div
-          className="w-full p-4 lg:border-l"
+          className="w-full lg:w-auto p-4 lg:border-l"
           style={{
             width: window.innerWidth >= 1024 ? `${100 - editorWidth}%` : "100%",
           }}
@@ -327,18 +406,9 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
                   <Label htmlFor="language-select" className="text-sm">
                     Language:
                   </Label>
-                  <select
-                    id="language-select"
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    className="p-1 border rounded"
-                  >
-                    <option value="java">Java</option>
-                    <option value="C++14">C++14</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="typescript">TypeScript</option>
-                    <option value="python">Python</option>
-                  </select>
+                  <div className="px-3 py-1 border rounded bg-gray-100 dark:bg-gray-800">
+                    Java
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Label htmlFor="theme-select" className="text-sm">
@@ -360,12 +430,20 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
               <div className="flex-1 min-h-[400px]">
                 <Editor
                   height="100%"
-                  defaultLanguage={language}
-                  language={language}
+                  defaultLanguage="java"
+                  language="java"
                   value={code}
                   onChange={(value) => setCode(value || "")}
                   theme={monacoTheme}
-                  options={{ fontSize: 18 }}
+                  options={{
+                    fontSize: 18,
+                    minimap: { enabled: false },
+                    lineNumbers: "on",
+                    roundedSelection: false,
+                    scrollBeyondLastLine: false,
+                    readOnly: false,
+                    automaticLayout: true,
+                  }}
                 />
               </div>
             </CardContent>

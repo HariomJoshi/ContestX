@@ -15,7 +15,7 @@ import PrivateRoute from "./others/PrivateRoute";
 import SolvePage from "./Pages/SolvePage";
 import ContestPage from "./Pages/ContestsPage";
 import AvailableQuestions from "./Pages/AvailableQuestions";
-import SolveQuestion from "./Pages/SolveQuestion";
+import QuestionWrapper from "./Pages/QuestionWrapper";
 import CurrentRankingsPage from "./Pages/CurrentRankings";
 import ProfilePage from "./Pages/ProfilePage";
 import BlogRenderer from "./components/BlogRenderer";
@@ -35,7 +35,7 @@ const App: React.FC = () => {
             {/* make this route protected */}
             <Route path="/make-contest" element={<MakeContests />} />
             <Route path="/solve" element={<SolvePage />} />
-            <Route path="/questions/:id" element={<SolveQuestion />} />
+            <Route path="/questions/:id" element={<QuestionWrapper />} />
             <Route path="/add-question" element={<AddQuestion />} />
             <Route path="/contest/:contestId" element={<ContestArea />} />
           </Route>
@@ -54,13 +54,13 @@ const App: React.FC = () => {
   );
 };
 
-const UserRoutes: React.FC = () => {
+const UserRoutes = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <NavBar />
-      <main className="flex-grow">
+      <div className="flex-1">
         <Outlet />
-      </main>
+      </div>
       <Footer />
     </div>
   );

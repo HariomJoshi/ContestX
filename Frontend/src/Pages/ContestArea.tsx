@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import axios from "axios";
 import SolveQuestion from "./SolveQuestion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Question } from "./SolveQuestion";
 import {
   AlertCircle,
   Clock,
@@ -30,29 +32,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface Contest {
+export interface Contest {
   id: number;
   title: string;
   description: string;
-  startTime: string;
-  endTime: string;
-  questions: {
-    id: number;
-    title: string;
-    difficulty: string;
+  duration: number;
+  start_time: string;
+  end_time: string;
+  contestQuestions: {
+    question: Question;
   }[];
-}
-
-interface Question {
-  id: number;
-  title: string;
-  description: string;
-  constraints: string;
-  testCases: {
-    input: string;
-    output: string;
-  }[];
-  tags: string[];
 }
 
 const ContestArea: React.FC = () => {
@@ -65,6 +54,7 @@ const ContestArea: React.FC = () => {
   const [tabSwitches, setTabSwitches] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [timeLeft, setTimeLeft] = useState<string>("");
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -73,8 +63,8 @@ const ContestArea: React.FC = () => {
           `${import.meta.env.VITE_BACKEND_URL}/contests/${contestId}`
         );
         setContest(response.data);
-        if (response.data.questions.length > 0) {
-          fetchQuestion(response.data.questions[0].id);
+        if (response.data.contestQuestions.length > 0) {
+          setCurrentQuestion(response.data.contestQuestions[0].question);
         }
       } catch (error) {
         console.error("Error fetching contest:", error);
@@ -87,17 +77,31 @@ const ContestArea: React.FC = () => {
     fetchContest();
   }, [contestId]);
 
-  const fetchQuestion = async (questionId: number) => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/questions/${questionId}`
-      );
-      setCurrentQuestion(response.data);
-    } catch (error) {
-      console.error("Error fetching question:", error);
-      toast.error("Failed to fetch question");
-    }
-  };
+  useEffect(() => {
+    if (!contest) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const end = new Date(contest.end_time).getTime();
+      const difference = end - now;
+
+      if (difference <= 0) {
+        setTimeLeft("Contest Ended");
+        return;
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [contest]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -121,7 +125,7 @@ const ContestArea: React.FC = () => {
   const handleQuestionChange = (index: number) => {
     if (!contest) return;
     setCurrentQuestionIndex(index);
-    fetchQuestion(contest.questions[index].id);
+    setCurrentQuestion(contest.contestQuestions[index].question);
   };
 
   if (loading) {
@@ -148,18 +152,28 @@ const ContestArea: React.FC = () => {
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            <motion.div
+              initial={false}
+              animate={{ rotate: isSidebarOpen ? 0 : 180 }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
             >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+            </motion.div>
             <div>
               <h1 className="text-2xl font-bold">{contest.title}</h1>
               <div className="flex items-center gap-2 mt-2">
                 <Clock className="w-4 h-4" />
-                <span>Time Remaining: 2:30:00</span>
+                <span>Time Remaining: {timeLeft}</span>
               </div>
             </div>
           </div>
@@ -172,51 +186,92 @@ const ContestArea: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex">
-        {/* Sidebar */}
-        <div
-          className={`${
-            isSidebarOpen ? "w-64" : "w-0"
-          } border-r transition-all duration-300 overflow-hidden`}
-        >
-          <div className="p-4 space-y-2">
-            <h2 className="font-semibold mb-4">Questions</h2>
-            {contest.questions.map((question, index) => (
-              <Button
-                key={question.id}
-                variant={currentQuestionIndex === index ? "default" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => handleQuestionChange(index)}
-              >
-                <span className="mr-2">{index + 1}.</span>
-                {question.title}
-                <Badge variant="secondary" className="ml-auto">
-                  {question.difficulty}
-                </Badge>
-              </Button>
-            ))}
-          </div>
-        </div>
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Question List Sidebar */}
+        <AnimatePresence initial={false}>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{
+                width: 256,
+                opacity: 1,
+                transition: {
+                  width: { duration: 0.3, ease: "easeOut" },
+                  opacity: { duration: 0.2, delay: 0.1 },
+                },
+              }}
+              exit={{
+                width: 0,
+                opacity: 0,
+                transition: {
+                  width: { duration: 0.3, ease: "easeIn" },
+                  opacity: { duration: 0.2 },
+                },
+              }}
+              className="border-r overflow-hidden"
+            >
+              <div className="w-64 p-4">
+                <h2 className="font-semibold mb-4">Questions</h2>
+                <div className="space-y-2">
+                  {contest.contestQuestions.map((q, index) => (
+                    <motion.div
+                      key={q.question.id}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{
+                        delay: index * 0.1,
+                        duration: 0.3,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <Button
+                        variant={
+                          currentQuestionIndex === index ? "default" : "ghost"
+                        }
+                        className="w-full justify-start transition-all"
+                        onClick={() => handleQuestionChange(index)}
+                      >
+                        <span className="truncate">
+                          {index + 1}. {q.question.title}
+                        </span>
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Main Content */}
-        <div className="flex-1">
-          <SolveQuestion question={currentQuestion} />
-        </div>
+        {/* Question Content */}
+        <motion.div
+          className="flex-1 p-6"
+          animate={{
+            paddingLeft: isSidebarOpen ? "1.5rem" : "2.5rem",
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          {currentQuestion && (
+            <SolveQuestion question={currentQuestion} contestId={contest.id} />
+          )}
+        </motion.div>
       </div>
 
-      {/* Tab Switch Warning */}
-      <AlertDialog open={showTabWarning} onOpenChange={setShowTabWarning}>
+      {/* Tab Warning Dialog */}
+      <AlertDialog open={showTabWarning}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Warning: Tab Switch Detected</AlertDialogTitle>
+            <AlertDialogTitle>Warning: Tab Switching</AlertDialogTitle>
             <AlertDialogDescription>
-              You have switched tabs {tabSwitches} times. After 3 tab switches,
-              you will be disqualified from the contest.
+              You have switched tabs 3 times. This may be considered as
+              cheating. Further tab switches may result in disqualification.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>Continue</AlertDialogAction>
+            <AlertDialogAction onClick={() => setShowTabWarning(false)}>
+              I Understand
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

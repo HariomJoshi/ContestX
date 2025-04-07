@@ -85,9 +85,16 @@ export const getContestById = async (req: Request, res: Response) => {
         },
       },
     });
-
     if (!contest) {
       return res.status(404).json({ error: "Contest not found" });
+    }
+    if (contest.contestQuestions) {
+      contest.contestQuestions.map((entry, index) => {
+        entry.question.testCases = JSON.parse(entry.question.testCases).slice(
+          0,
+          2
+        );
+      });
     }
 
     res.json(contest);

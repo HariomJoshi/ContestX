@@ -3,24 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
-
-interface Contest {
-  id: number;
-  duration: number;
-  start_time: string;
-  end_time: string;
-  contestQuestions: {
-    question: {
-      id: number;
-      title: string;
-      description: string;
-      testCases: string;
-      constraints: string;
-      tags: string[];
-    };
-  }[];
-  isRegistered?: boolean;
-}
+import { Contest } from "@/Pages/ContestsPage";
 
 interface OngoingContestProps {
   contest: Contest;
@@ -28,6 +11,7 @@ interface OngoingContestProps {
 
 const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
   const navigate = useNavigate();
+  const [contestEnded, setContestEnded] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
 
   useEffect(() => {
@@ -38,6 +22,7 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
 
       if (difference <= 0) {
         setTimeLeft("Contest Ended");
+        setContestEnded(true);
         return;
       }
 
@@ -60,12 +45,10 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-semibold mb-2">
-              {contest.contestQuestions[0]?.question.title ||
-                "Untitled Contest"}
+              {contest.title || "Untitled Contest"}
             </h3>
             <p className="text-gray-600 mb-2">
-              {contest.contestQuestions[0]?.question.description ||
-                "No description available"}
+              {contest.description || "No description available"}
             </p>
             <div className="flex items-center text-sm text-gray-500">
               <Clock className="w-4 h-4 mr-1" />
@@ -83,12 +66,14 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
           </div>
         </div>
         <div className="flex justify-end">
-          <Button
-            onClick={() => navigate(`/contest/${contest.id}`)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {contest.isRegistered ? "Go to Contest" : "Register"}
-          </Button>
+          {!contestEnded && (
+            <Button
+              onClick={() => navigate(`/contest/${contest.id}`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {contest.isRegistered ? "Go to Contest" : "Register"}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
