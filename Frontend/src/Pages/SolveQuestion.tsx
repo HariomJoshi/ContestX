@@ -76,7 +76,7 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
   );
   const [code, setCode] = useState(`import java.util.*;
 
-public class Solution {
+public class Main {
  
     public static void main(String[] args) {
         try {
@@ -84,17 +84,17 @@ public class Solution {
             Scanner scan = new Scanner(System.in);
             t = scan.nextInt();
             while(t-- != 0){
-                solve();
+                solve(scan);
             }
+            scan.close();
         } catch (Exception e) {
             e.printStackTrace();
             throw new NullPointerException("Some Error Occured");
         }
     }
 
-    private static void solve(){
-        // Write your solution here
-        
+    private static void solve(Scanner scan){
+        // Write your solution here        
     }
 }`);
   const [resultsVisible, setResultsVisible] = useState(false);
@@ -160,6 +160,7 @@ public class Solution {
           questionId: id,
         }
       );
+      console.log(response.data);
       setOutput(response.data.output);
       setTestResults([
         {

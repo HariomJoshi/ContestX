@@ -41,7 +41,7 @@ router.post("/", async (req: any, res: any) => {
     }
     const testCases = question.testCases;
     // console.log(testCases);
-    console.log(code);
+    // console.log(code);
 
     // Parse test cases
     const parsedTestCases: TestCase[] = JSON.parse(testCases);
@@ -55,23 +55,27 @@ router.post("/", async (req: any, res: any) => {
       .join("\n")}`;
     const expectedOutput = parsedTestCases.map((tc) => tc.output).join("\n");
 
-    // Get complete code with boilerplate
-    const completeCode = code;
+    console.log("Raw input:", input);
+    console.log("Raw expected output:", expectedOutput);
+    console.log("Raw code:", code);
 
     // Submit to Judge0
     let token: string;
     console.log("Sending request to Judge0...");
     try {
+      const requestBody = {
+        source_code: code,
+        language_id: 62, // Java
+        stdin: input,
+        expected_output: expectedOutput,
+        cpu_time_limit: 5,
+        wall_time_limit: 5,
+      };
+      console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
       const judge0Response = await axios.post<Judge0Response>(
-        `${process.env.JUDGE0_API}/submissions`,
-        {
-          source_code: completeCode,
-          language_id: 62, // Java
-          stdin: input,
-          expected_output: expectedOutput,
-          cpu_time_limit: 5,
-          wall_time_limit: 5,
-        },
+        `${process.env.JUDGE0_API}/submissions?wait=false`,
+        requestBody,
         {
           headers: {
             "Content-Type": "application/json",
@@ -81,17 +85,19 @@ router.post("/", async (req: any, res: any) => {
         }
       );
       token = judge0Response.data.token;
+      console.log("token", token);
       console.log("RESPONSE RECEIVED");
-      console.log(judge0Response);
     } catch (error) {
       console.error("Error making Judge0 request:", error);
       throw error;
     }
 
     // Poll for results
+    console.log("Polling for results...");
     let result: Judge0Result | null = null;
     let attempts = 0;
     const maxAttempts = 10;
+    console.log("maxAttempts", maxAttempts);
 
     while (attempts < maxAttempts) {
       const response = await axios.get<Judge0Result>(
@@ -99,7 +105,7 @@ router.post("/", async (req: any, res: any) => {
         {
           headers: {
             "X-RapidAPI-Key": process.env.JUDGE0_API_KEY,
-            "X-RapidAPI-Host": process.env.JUDGE0_API,
+            "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
           },
         }
       );
@@ -109,6 +115,7 @@ router.post("/", async (req: any, res: any) => {
         result = response.data;
         break;
       }
+      console.log("response", response.data.status.id);
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       attempts++;
@@ -117,43 +124,55 @@ router.post("/", async (req: any, res: any) => {
     if (!result) {
       return res.status(500).json({ error: "Timeout waiting for result" });
     }
-
+    console.log("result");
+    console.log(result);
     // Process result
     if (result.status.id === 3) {
       // Accepted
       console.log("Accepted!");
+      const decodedOutput = result.stdout;
       return res.json({
         status: "accepted",
-        output: result.stdout,
+        output: decodedOutput,
       });
     } else if (result.status.id === 4) {
       // Wrong Answer
       console.log("Wrong Ans!");
+      const decodedOutput = result.stdout;
       return res.json({
         status: "wrong_answer",
-        output: result.stdout,
+        output: decodedOutput,
         expected: expectedOutput,
       });
     } else if (result.status.id === 5) {
       // Time Limit Exceeded
       console.log("Time Limit Exceeded");
+      const decodedOutput = result.stdout
+        ? Buffer.from(result.stdout, "base64").toString()
+        : "";
       return res.json({
         status: "time_limit_exceeded",
-        output: result.stdout,
+        output: decodedOutput,
       });
     } else if (result.status.id === 6) {
       // Compilation Error
       console.log("Compilation Error");
+      const decodedError = result.stderr
+        ? Buffer.from(result.stderr, "base64").toString()
+        : "";
       return res.json({
         status: "compilation_error",
-        error: result.stderr,
+        error: decodedError,
       });
     } else {
       // Runtime Error or other
       console.log("Runtime Error");
+      const decodedError = result.stderr
+        ? Buffer.from(result.stderr, "base64").toString()
+        : "";
       return res.json({
         status: "runtime_error",
-        error: result.stderr,
+        error: decodedError,
       });
     }
   } catch (error) {
