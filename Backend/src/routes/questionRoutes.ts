@@ -5,7 +5,7 @@ import {
   getQuestionById,
 } from "../Controllers/questionController.js";
 
-const router: Router = express.Router();
+const router: Router = Router();
 
 // Create a new question
 router.post("/", createQuestion as express.RequestHandler);

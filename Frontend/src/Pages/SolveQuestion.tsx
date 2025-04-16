@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -23,15 +25,6 @@ import {
   XCircle,
   GripVertical,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 
 interface TestCase {
   input: string;
@@ -74,6 +67,7 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
   const [monacoTheme, setMonacoTheme] = useState<"vs-light" | "vs-dark">(
     "vs-dark"
   );
+  const userId = useSelector((state: RootState) => state.user.data.id);
   const [code, setCode] = useState(`import java.util.*;
 
 public class Main {
@@ -187,6 +181,7 @@ public class Main {
         `${import.meta.env.VITE_BACKEND_URL}/submit`,
         {
           code,
+          userId,
           language: selectedLanguage,
           questionId: question?.id,
           ...(contestId && { contestId }),

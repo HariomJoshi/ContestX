@@ -66,6 +66,7 @@ model SubmissionQuestion {
   question   Question  @relation(fields: [questionId], references: [id])
   verdict    Boolean
   time       DateTime  @default(now())
+  code       String
   @@id([userId, questionId])
 }
 
