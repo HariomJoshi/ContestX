@@ -25,6 +25,14 @@ import {
   XCircle,
   GripVertical,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface TestCase {
   input: string;
@@ -102,6 +110,9 @@ public class Main {
   );
   const [selectedLanguage, setSelectedLanguage] = useState("java");
   const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [customInput, setCustomInput] = useState("");
+  const [customOutput, setCustomOutput] = useState("");
+  const [isCustomInputOpen, setIsCustomInputOpen] = useState(false);
   console.log(question);
 
   useEffect(() => {
@@ -162,6 +173,36 @@ public class Main {
           expectedOutput: testCases[0].output,
           actualOutput: response.data.output,
           passed: response.data.output.trim() === testCases[0].output.trim(),
+        },
+      ]);
+    } catch (error) {
+      console.error("Error running code:", error);
+      toast.error("Failed to run code");
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const handleRunCustomInput = async () => {
+    setIsRunning(true);
+    // setResultsVisible(true);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/run`,
+        {
+          code,
+          language: selectedLanguage,
+          customInput,
+        }
+      );
+
+      setCustomOutput(response.data.output);
+      setTestResults([
+        {
+          input: customInput,
+          expectedOutput: "",
+          actualOutput: response.data.output,
+          passed: true,
         },
       ]);
     } catch (error) {
@@ -275,6 +316,46 @@ public class Main {
               <FileCode className="w-4 h-4 mr-2" />
               Run
             </Button>
+            <Dialog
+              open={isCustomInputOpen}
+              onOpenChange={setIsCustomInputOpen}
+            >
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Code2 className="w-4 h-4 mr-2" />
+                  Run Custom Input
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Run with Custom Input</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="custom-input">Input</Label>
+                    <Textarea
+                      id="custom-input"
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      placeholder="Enter your custom input"
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="custom-output">Output</Label>
+                    <Textarea
+                      id="custom-output"
+                      value={customOutput}
+                      readOnly
+                      className="min-h-[100px] bg-gray-100"
+                    />
+                  </div>
+                  <Button onClick={handleRunCustomInput} disabled={isRunning}>
+                    {isRunning ? "Running..." : "Run"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button onClick={handleSubmit}>
               <Code2 className="w-4 h-4 mr-2" />
               Submit

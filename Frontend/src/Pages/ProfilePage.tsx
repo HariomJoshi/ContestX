@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -9,49 +9,88 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import RatingGraph from "@/components/RatingGraph";
+import axios from "axios";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
-// Dummy data – replace these with dynamic data from your API or store.
-const dummyProfile = {
-  name: "Alice Johnson",
-  username: "alice_j",
-};
+interface ProfileData {
+  name: string;
+  username: string;
+  email: string;
+}
 
-const dummyRatingData = [0, 735, 1300, 1415];
+interface Submission {
+  id: string;
+  question: string;
+  status: string;
+  time: string;
+}
 
-const dummySubmissions = [
-  {
-    id: "s1",
-    question: "Two Sum",
-    status: "Accepted",
-    time: "2025-03-24 10:30 AM",
-  },
-  {
-    id: "s2",
-    question: "Longest Substring",
-    status: "Wrong Answer",
-    time: "2025-03-24 11:00 AM",
-  },
-  {
-    id: "s3",
-    question: "Add Two Numbers",
-    status: "Accepted",
-    time: "2025-03-24 11:30 AM",
-  },
-];
-
-const dummyContests = [
-  {
-    id: "c1",
-    name: "Weekly Contest 1",
-    rank: 15,
-    participatedOn: "2025-03-23",
-  },
-  { id: "c2", name: "Monthly Contest", rank: 5, participatedOn: "2025-04-20" },
-  { id: "c3", name: "Biweekly Contest", rank: 5, participatedOn: "2025-04-25" },
-  { id: "c4", name: "Biweekly Contest", rank: 5, participatedOn: "2025-05-10" },
-];
+interface Contest {
+  id: string;
+  name: string;
+  participatedOn: string;
+}
 
 const ProfilePage: React.FC = () => {
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [ratings, setRatings] = useState<number[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const userId = useSelector((state: RootState) => state.user.data.id);
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/profile`,
+          {
+            params: {
+              userId: userId,
+            },
+          }
+        );
+        const data = response.data;
+
+        setProfile(data.profile);
+        setRatings(data.ratings || []);
+        setSubmissions(data.submissions || []);
+        setContests(data.contests || []);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+        toast.error("Failed to load profile data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
+
+  if (loading) {
+    // adding loader
+    return (
+      <div className="container mx-auto p-4">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="container mx-auto p-4">
+        <p className="text-red-500">Failed to load profile data</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       {/* Profile Information */}
@@ -61,10 +100,13 @@ const ProfilePage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <p>
-            <strong>Name:</strong> {dummyProfile.name}
+            <strong>Name:</strong> {profile.name}
           </p>
           <p>
-            <strong>Username:</strong> {dummyProfile.username}
+            <strong>Username:</strong> {profile.username}
+          </p>
+          <p>
+            <strong>Email:</strong> {profile.email}
           </p>
         </CardContent>
       </Card>
@@ -75,7 +117,7 @@ const ProfilePage: React.FC = () => {
           <CardTitle className="text-2xl font-bold">Rating Graph</CardTitle>
         </CardHeader>
         <CardContent>
-          <RatingGraph ratings={dummyRatingData} contests={dummyContests} />
+          <RatingGraph ratings={ratings} contests={contests} />
         </CardContent>
       </Card>
 
@@ -95,12 +137,22 @@ const ProfilePage: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dummySubmissions.map((sub, index) => (
+              {submissions.map((sub, index) => (
                 <TableRow key={sub.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{sub.question}</TableCell>
-                  <TableCell>{sub.status}</TableCell>
-                  <TableCell>{sub.time}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 rounded ${
+                        sub.status === "Accepted"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {sub.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>{new Date(sub.time).toLocaleString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -121,17 +173,17 @@ const ProfilePage: React.FC = () => {
               <TableRow>
                 <TableHead className="w-16">#</TableHead>
                 <TableHead>Contest Name</TableHead>
-                <TableHead>Rank</TableHead>
                 <TableHead>Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dummyContests.map((contest, index) => (
+              {contests.map((contest, index) => (
                 <TableRow key={contest.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{contest.name}</TableCell>
-                  <TableCell>{contest.rank}</TableCell>
-                  <TableCell>{contest.participatedOn}</TableCell>
+                  <TableCell>
+                    {new Date(contest.participatedOn).toLocaleDateString()}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

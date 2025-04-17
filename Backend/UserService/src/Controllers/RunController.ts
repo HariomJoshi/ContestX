@@ -15,7 +15,37 @@ const prisma = new PrismaClient();
 export const runCode = async (req: Request, res: Response) => {
   try {
     let result: RunQuestionResponse | undefined;
-    // just calling the function
+
+    // Check if we have custom input
+    if (req.body.customInput) {
+      // Create a single test case with the custom input
+      req.body.testCases = [
+        {
+          input: req.body.customInput,
+          output: "", // No expected output for custom input
+        },
+      ];
+    } else {
+      // For regular runs, fetch and parse test cases
+      const question = await prisma.question.findUnique({
+        where: { id: Number(req.body.questionId) },
+        select: { testCases: true },
+      });
+
+      if (!question) {
+        return res.status(404).json({ error: "Question not found" });
+      }
+
+      const parsedTestCases = JSON.parse(question.testCases);
+      if (!Array.isArray(parsedTestCases) || parsedTestCases.length === 0) {
+        return res.status(400).json({ error: "Invalid test cases format" });
+      }
+
+      // Use only the first test case for quick testing
+      req.body.testCases = [parsedTestCases[0]];
+    }
+
+    // Run the code
     result = await runQuestion(req);
 
     if (!result || result == undefined) {

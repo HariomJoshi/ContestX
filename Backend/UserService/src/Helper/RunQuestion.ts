@@ -8,41 +8,23 @@ const prisma = new PrismaClient();
 export const runQuestion = async (req: Request) => {
   let result: Judge0Result | null = null;
   try {
-    const { code, language, questionId } = req.body;
-    const question = await prisma.question.findUnique({
-      where: { id: Number(questionId) },
-      select: { testCases: true },
-    });
-    if (!question) {
-      const res: RunQuestionResponse = {
-        status: 404,
-        error: "Question not found",
-      };
-      return res;
-      //   return res.status(404).json({ error: "Question not found" });
-    }
-    const testCases = question.testCases;
-    // console.log(testCases);
-    // console.log(code);
+    const { code, language, testCases } = req.body;
 
-    // Parse test cases
-    const parsedTestCases: TestCase[] = JSON.parse(testCases);
-    if (!Array.isArray(parsedTestCases) || parsedTestCases.length === 0) {
+    if (!Array.isArray(testCases) || testCases.length === 0) {
       const res: RunQuestionResponse = {
         status: 400,
         error: "Invalid test cases format",
       };
-      //   return res.status(400).json({ error: "Invalid test cases format" });
+      return res;
     }
 
     // Prepare input for Judge0
-    const input = `${parsedTestCases.length}\n${parsedTestCases
+    const input = `${testCases.length}\n${testCases
       .map((tc) => tc.input)
       .join("\n")}`;
-    const expectedOutput = parsedTestCases.map((tc) => tc.output).join("\n");
+    const expectedOutput = testCases.map((tc) => tc.output).join("\n");
 
     console.log("Raw input:", input);
-    // console.log("Raw expected output:", expectedOutput);
     console.log("Raw code:", code);
 
     // Submit to Judge0

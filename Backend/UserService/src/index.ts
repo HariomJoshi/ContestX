@@ -9,6 +9,7 @@ import questionRouter from "./routes/questionRoutes.js";
 import contestRouter from "./routes/contestRoutes.js";
 import runRouter from "./routes/runRoutes.js";
 import submitRouter from "./routes/SubmitRoutes.js";
+import profileRouter from "./routes/profileRoutes.js";
 import "./Middlewares/DailyTask.js"; // Import the scheduler
 // The scheduler will run independently once imported.
 import pkg from "pg";
@@ -28,6 +29,7 @@ app.use("/api/v1/questions", questionRouter);
 app.use("/api/v1/contests", contestRouter);
 app.use("/api/v1/run", runRouter);
 app.use("/api/v1/submit", submitRouter);
+app.use("/api/v1/profile", profileRouter);
 app.use(errorHandler);
 
 const client = new Client({
