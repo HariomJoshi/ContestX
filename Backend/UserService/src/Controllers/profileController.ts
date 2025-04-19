@@ -40,6 +40,7 @@ export const getProfileData = async (req: Request, res: Response) => {
       orderBy: {
         time: "desc",
       },
+      take: 10,
     });
 
     // Fetch contests participated

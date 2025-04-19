@@ -1,88 +1,78 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "../ERD.svg"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-// To generate the Er diagram everytime i generate client
-generator erd {
-  provider = "prisma-erd-generator"
-  output = "../ERD.svg"
-}
-
 
 model User {
-  id         Int                   @id @default(autoincrement())
-  username   String                @unique
-  password   String 
-  firstName  String
-  lastName   String
-  email      String
-  // Many-to-many: A user can solve many questions.
-  solvedQuestions SubmissionQuestion[]
-  // Many-to-many: A user participates in many contests.
-  contests_participated UserContests[]
+  id                    Int                  @id @default(autoincrement())
+  username              String               @unique
+  password              String
+  firstName             String
+  lastName              String
+  email                 String
   rating_changed        Int[]
+  solvedQuestions       SubmissionQuestion[]
+  contests_participated UserContests[]
 }
 
 model Question {
-  id          Int                   @id @default(autoincrement())
-  title       String
-  description String
-  testCases   String
-  constraints String @default("")
-  tags        String[]
-  // Many-to-many: A question can be solved by many users.
-  solvedBy    SubmissionQuestion[]
-  // Remove direct contestId field and use join table instead.
+  id               Int                  @id @default(autoincrement())
+  title            String
+  description      String
+  inputFormat      String
+  testCases        String
+  tags             String[]
+  constraints      String               @default("")
   contestRelations ContestQuestion[]
+  solvedBy         SubmissionQuestion[]
 }
 
 model Contest {
-  id                Int                   @id @default(autoincrement())
-  title             String
-  description       String
-  // Many-to-many: A contest can have many questions.
-  contestQuestions  ContestQuestion[]
-  // Many-to-many: A contest has many participants.
-  participants      UserContests[]
-  duration          Int               
-  start_time        DateTime
-  end_time          DateTime
+  id               Int               @id @default(autoincrement())
+  start_time       DateTime
+  end_time         DateTime
+  duration         Int
+  description      String
+  title            String
+  contestQuestions ContestQuestion[]
+  participants     UserContests[]
 }
 
 model SubmissionQuestion {
   userId     Int
-  user       User    @relation(fields: [userId], references: [id])
-  questionId Int
-  question   Question  @relation(fields: [questionId], references: [id])
   verdict    Boolean
-  time       DateTime  @default(now())
+  time       DateTime @default(now())
+  questionId Int
   code       String
-  @@id([userId, questionId])
+  id         Int      @id @default(autoincrement())
+  question   Question @relation(fields: [questionId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 }
 
 model UserContests {
   userId    Int
-  user      User    @relation(fields: [userId], references: [id])
   contestId Int
   contest   Contest @relation(fields: [contestId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
   @@id([userId, contestId])
 }
 
 model ContestQuestion {
   contestId  Int
-  contest    Contest  @relation(fields: [contestId], references: [id])
   questionId Int
+  contest    Contest  @relation(fields: [contestId], references: [id])
   question   Question @relation(fields: [questionId], references: [id])
+
   @@id([contestId, questionId])
 }
 
@@ -92,5 +82,5 @@ model Blog {
   description String
   date        String
   imageUrl    String
-  content     Json 
+  content     Json
 }

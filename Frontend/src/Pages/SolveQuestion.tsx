@@ -113,6 +113,18 @@ public class Main {
   const [customInput, setCustomInput] = useState("");
   const [customOutput, setCustomOutput] = useState("");
   const [isCustomInputOpen, setIsCustomInputOpen] = useState(false);
+  const [response, setResponse] = useState<{
+    data?: {
+      success: boolean;
+      message: string;
+      result?: {
+        time: number;
+        memory: number;
+      };
+      output?: string;
+      error?: string;
+    };
+  } | null>(null);
   console.log(question);
 
   useEffect(() => {
@@ -237,6 +249,7 @@ public class Main {
       }
 
       setOutput(response.data.output);
+      setResponse(response);
     } catch (error) {
       console.error("Error submitting code:", error);
       toast.error("Failed to submit code");
@@ -618,19 +631,52 @@ public class Main {
               </div>
               <Card className="p-4">
                 <CardContent className="p-0">
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Status</span>
-                      <Badge variant="secondary">Pending</Badge>
+                      <Badge
+                        variant={
+                          response?.data?.success ? "secondary" : "destructive"
+                        }
+                        className="capitalize"
+                      >
+                        {response?.data?.message || "Pending"}
+                      </Badge>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Runtime</span>
-                      <span className="text-sm text-gray-500">-</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Memory</span>
-                      <span className="text-sm text-gray-500">-</span>
-                    </div>
+                    {response?.data?.result?.time && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Runtime</span>
+                        <span className="text-sm text-gray-500">
+                          {response.data.result.time} ms
+                        </span>
+                      </div>
+                    )}
+                    {response?.data?.result?.memory && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Memory</span>
+                        <span className="text-sm text-gray-500">
+                          {response.data.result.memory} KB
+                        </span>
+                      </div>
+                    )}
+                    {response?.data?.output && (
+                      <div className="space-y-2">
+                        <span className="text-sm font-medium">Output</span>
+                        <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-sm overflow-x-auto">
+                          {response.data.output}
+                        </pre>
+                      </div>
+                    )}
+                    {response?.data?.error && (
+                      <div className="space-y-2">
+                        <span className="text-sm font-medium text-red-500">
+                          Error
+                        </span>
+                        <pre className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm overflow-x-auto text-red-500">
+                          {response.data.error}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

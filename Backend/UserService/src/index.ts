@@ -12,6 +12,7 @@ import submitRouter from "./routes/SubmitRoutes.js";
 import profileRouter from "./routes/profileRoutes.js";
 import "./Middlewares/DailyTask.js"; // Import the scheduler
 // The scheduler will run independently once imported.
+
 import pkg from "pg";
 import morgan from "morgan";
 const { Client } = pkg;
@@ -33,11 +34,13 @@ app.use("/api/v1/profile", profileRouter);
 app.use(errorHandler);
 
 const client = new Client({
-  connectionString: process.env.DATABASE_URL, // corrected typo
+  connectionString: process.env.DATABASE_URL,
 });
+
 client.connect(() => {
   console.log("Connected to DB");
 });
+
 app.listen(process.env.PORT, () => {
   console.log("Server started on Port:", process.env.PORT);
 });

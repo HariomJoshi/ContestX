@@ -41,23 +41,12 @@ export const submitQuestion = async (req: Request, res: Response) => {
     const isAccepted = runResult.result.status.id === 3;
 
     // Save the submission to the database
-    const submission = await prisma.submissionQuestion.upsert({
-      where: {
-        userId_questionId: {
-          userId,
-          questionId: Number(questionId),
-        },
-      },
-      update: {
+    const submission = await prisma.submissionQuestion.create({
+      data: {
         verdict: isAccepted,
         code,
-        time: new Date(),
-      },
-      create: {
-        userId,
-        questionId: Number(questionId),
-        verdict: isAccepted,
-        code,
+        user: { connect: { id: Number(userId) } },
+        question: { connect: { id: Number(questionId) } },
       },
     });
 
