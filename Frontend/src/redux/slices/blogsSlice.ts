@@ -33,7 +33,7 @@ export const fetchBlogs = createAsyncThunk(
     try {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
       console.log("Fetching blogs function");
-      const response = await axios.get(`${BACKEND_URL}/getBlogs`);
+      const response = await axios.get(`${BACKEND_URL}/user/getBlogs`);
       console.log("Response: ");
       console.log(response);
       return response.data;

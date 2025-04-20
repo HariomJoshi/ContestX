@@ -74,9 +74,35 @@ export const getContests = async (req: Request, res: Response) => {
 
 export const getContestById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id, userId } = req.params;
+    // const userId = req.query.userId as String;
+    console.log(id + " " + userId);
+    if (!userId) {
+      return res.status(401).json({ error: "User ID is required" });
+    }
+
+    // Check if user is registered for the contest
+    const registration = await prisma.userContests.findUnique({
+      where: {
+        userId_contestId: {
+          userId: Number(userId),
+          contestId: Number(id),
+        },
+      },
+    });
+
+    if (!registration) {
+      return res
+        .status(401)
+        .json({ error: "User is not registered for this contest" });
+    }
+
     const contest = await prisma.contest.findUnique({
-      where: { id: parseInt(id) },
+      where: {
+        id: parseInt(id),
+        start_time: { lte: new Date() },
+        end_time: { gte: new Date() },
+      },
       include: {
         contestQuestions: {
           include: {
@@ -85,14 +111,16 @@ export const getContestById = async (req: Request, res: Response) => {
         },
       },
     });
+
     if (!contest) {
       return res.status(404).json({ error: "Contest not found" });
     }
+
     if (contest.contestQuestions) {
       contest.contestQuestions.map((entry, index) => {
         entry.question.testCases = JSON.parse(entry.question.testCases).slice(
           0,
-          2
+          1
         );
       });
     }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import axios from "axios";
 
 export const createContest = async (
   req: Request,
@@ -37,7 +38,7 @@ export const getContests = async (
     // Forward the login request to submission-service
 
     const downstreamRes = await axios.get(
-      `${process.env.USER_SERVICE_API}/getBlogs`,
+      `${process.env.USER_SERVICE_API}/contests`,
       req.body
     );
 
@@ -60,14 +61,13 @@ export const getContestById = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { id } = req.params;
+  const { id, userId } = req.params;
   try {
     // Forward the login request to submission-service
 
-    const downstreamRes = await axios.post(
-      `${process.env.USER_SERVICE_API}/contests/${id}`,
-      req.body,
-      { headers: { ...req.headers } } // preserve incoming headers
+    const downstreamRes = await axios.get(
+      `${process.env.USER_SERVICE_API}/contests/${id}/${userId}`,
+      req.body
     );
 
     // Relay status code and JSON payload back to client

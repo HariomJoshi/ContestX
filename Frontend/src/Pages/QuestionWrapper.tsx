@@ -12,7 +12,7 @@ const QuestionWrapper: React.FC = () => {
     const fetchQuestion = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/questions/${id}`
+          `${import.meta.env.VITE_BACKEND_URL}/user/questions/${id}`
         );
         setQuestion(response.data);
       } catch (error) {

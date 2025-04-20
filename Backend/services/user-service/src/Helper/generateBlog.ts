@@ -1,5 +1,5 @@
 import { error } from "console";
-import OpenAI from "openai/index.mjs";
+import { OpenAI } from "openai/index.mjs";
 
 interface Blog {
   title: string;

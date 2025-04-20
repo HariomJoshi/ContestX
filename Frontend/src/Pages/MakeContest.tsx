@@ -46,7 +46,7 @@ const MakeContests: React.FC = () => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/questions`
+          `${import.meta.env.VITE_BACKEND_URL}/user/questions`
         );
         setAvailableQuestions(response.data);
       } catch (error) {
@@ -94,7 +94,7 @@ const MakeContests: React.FC = () => {
 
     setLoading(true);
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/contests`, {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/contests`, {
         title,
         description,
         startTime: `${date}T${startTime}`,

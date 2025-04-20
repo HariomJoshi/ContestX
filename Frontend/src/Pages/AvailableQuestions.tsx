@@ -36,7 +36,7 @@ const AvailableQuestions: React.FC = () => {
       const response = await axios.get(
         `${
           import.meta.env.VITE_BACKEND_URL
-        }/questions?page=${pageNum}&limit=${ITEMS_PER_PAGE}`
+        }/user/questions?page=${pageNum}&limit=${ITEMS_PER_PAGE}`
       );
 
       const newQuestions = response.data;

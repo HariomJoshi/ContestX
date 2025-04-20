@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import axios from "axios";
 
 export const getProfileData = async (
   req: Request,
@@ -7,9 +8,8 @@ export const getProfileData = async (
 ) => {
   try {
     // Forward the login request to user-service
-
     const downstreamRes = await axios.get(
-      `${process.env.USER_SERVICE_API}/profile`,
+      `${process.env.USER_SERVICE_API}/profile?userId=${req.query.userId}`,
       req.body
     );
 

@@ -1,19 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import { runQuestion } from "../Helper/runQuestion";
-import axios from "axios";
-import {
-  TestCase,
-  Judge0Response,
-  Judge0Result,
-  RunQuestionResponse,
-} from "../Types/global";
+import { RunQuestionResponse } from "../Types/global";
 import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 export const runCode = async (req: Request, res: Response) => {
   try {
-    let result: RunQuestionResponse | undefined;
-
     // Check if we have custom input
     if (req.body.customInput) {
       // Create a single test case with the custom input
@@ -44,7 +36,7 @@ export const runCode = async (req: Request, res: Response) => {
     }
 
     // Run the code
-    result = await runQuestion(req);
+    const result: RunQuestionResponse | undefined = await runQuestion(req);
 
     if (!result || result == undefined) {
       return res.status(500).json({ error: "Timeout waiting for result" });
@@ -55,59 +47,72 @@ export const runCode = async (req: Request, res: Response) => {
       return res.status(Number(result.status)).json({ error: result.error });
     }
 
-    console.log("result");
-    console.log(result);
     // Process result
     if (result.result.status.id === 3) {
       // accepted
-      console.log("Accepted!");
       const decodedOutput = result.result.stdout;
       return res.json({
+        success: true,
         status: "accepted",
-        output: decodedOutput,
+        output: decodedOutput || "No output",
+        time: result.result.time,
+        memory: result.result.memory,
       });
     } else if (result.result.status.id === 4) {
       // Wrong Answer
-      console.log("Wrong Ans!");
       const decodedOutput = result.result.stdout;
       return res.json({
+        success: false,
         status: "wrong_answer",
-        output: decodedOutput,
+        output: decodedOutput || "No output",
         expected: result.expectedOutput,
+        time: result.result.time,
+        memory: result.result.memory,
       });
     } else if (result.result.status.id === 5) {
       // Time Limit Exceeded
-      console.log("Time Limit Exceeded");
       const decodedOutput = result.result.stdout
         ? Buffer.from(result.result.stdout, "base64").toString()
         : "";
       return res.json({
+        success: false,
         status: "time_limit_exceeded",
-        output: decodedOutput,
+        output: decodedOutput || "No output",
+        time: result.result.time,
+        memory: result.result.memory,
       });
     } else if (result.result.status.id === 6) {
       // Compilation Error
-      console.log("Compilation Error");
       const decodedError = result.result.stderr
         ? Buffer.from(result.result.stderr, "base64").toString()
         : "";
       return res.json({
+        success: false,
         status: "compilation_error",
-        error: decodedError,
+        error: decodedError || "Compilation failed",
+        time: result.result.time,
+        memory: result.result.memory,
       });
     } else {
       // Runtime Error or other
-      console.log("Runtime Error");
       const decodedError = result.result.stderr
         ? Buffer.from(result.result.stderr, "base64").toString()
         : "";
       return res.json({
+        success: false,
         status: "runtime_error",
-        error: decodedError,
+        error: decodedError || "Runtime error occurred",
+        time: result.result.time,
+        memory: result.result.memory,
       });
     }
   } catch (error) {
     console.error("Error in run route:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({
+      success: false,
+      status: "server_error",
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };

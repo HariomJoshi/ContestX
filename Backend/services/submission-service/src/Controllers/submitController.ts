@@ -34,7 +34,11 @@ export const submitCode = async (req: Request, res: Response) => {
     const runResult = await runQuestion(req);
 
     if (!runResult || !runResult.result) {
-      return res.status(500).json({ error: "Failed to run code" });
+      return res.status(500).json({
+        success: false,
+        status: "server_error",
+        error: "Failed to run code",
+      });
     }
 
     // Check if the submission passed all test cases
@@ -53,13 +57,17 @@ export const submitCode = async (req: Request, res: Response) => {
     // Return the result
     res.json({
       success: isAccepted,
-      message: isAccepted ? "All test cases passed!" : "Some test cases failed",
-      output: runResult.result.stdout,
+      status: isAccepted ? "accepted" : "wrong_answer",
+      output: runResult.result.stdout || "No output",
+      time: runResult.result.time,
+      memory: runResult.result.memory,
       submission,
     });
   } catch (error: any) {
     console.error("Error submitting code:", error);
     res.status(500).json({
+      success: false,
+      status: "server_error",
       error: "Failed to submit code",
       details: error.message,
     });

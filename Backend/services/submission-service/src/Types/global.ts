@@ -10,12 +10,25 @@ export interface TestCase {
 }
 
 export interface Judge0Response {
-  token: string;
+  stdout: string | null;
+  stderr: string | null;
+  compile_output: string | null;
+  message: string | null;
+  time: string | null;
+  memory: number | null;
+  status: {
+    id: number;
+    description: string;
+  };
 }
 
 export interface Judge0Result {
   stdout: string | null;
   stderr: string | null;
+  compile_output: string | null;
+  message: string | null;
+  time: number;
+  memory: number;
   status: {
     id: number;
     description: string;
@@ -23,8 +36,8 @@ export interface Judge0Result {
 }
 
 export interface RunQuestionResponse {
-  status?: Number;
-  error?: String;
   result?: Judge0Result | null;
-  expectedOutput?: String;
+  status?: number;
+  error?: string;
+  expectedOutput?: string;
 }

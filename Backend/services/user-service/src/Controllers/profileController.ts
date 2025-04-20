@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export const getProfileData = async (req: Request, res: Response) => {
   try {
     const userId = req.query.userId;
-
+    console.log(userId);
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
     }

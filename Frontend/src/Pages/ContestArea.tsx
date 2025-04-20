@@ -31,6 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 export interface Contest {
   id: number;
@@ -55,27 +57,41 @@ const ContestArea: React.FC = () => {
   const [showTabWarning, setShowTabWarning] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string>("");
-
+  const [error, setError] = useState<string | null>(null);
+  const userId: Number = useSelector((state: RootState) => state.user.data.id);
   useEffect(() => {
     const fetchContest = async () => {
       try {
+        if (!userId) {
+          navigate("/");
+          return;
+        }
+
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/contests/${contestId}`
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/user/contests/${contestId}/${userId}`
         );
         setContest(response.data);
         if (response.data.contestQuestions.length > 0) {
           setCurrentQuestion(response.data.contestQuestions[0].question);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching contest:", error);
-        toast.error("Failed to fetch contest");
+        if (error.response?.status === 401) {
+          setError("You are not registered for this contest");
+          toast.error("You are not registered for this contest");
+        } else {
+          setError("Failed to fetch contest");
+          toast.error("Failed to fetch contest");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchContest();
-  }, [contestId]);
+  }, [contestId, navigate]);
 
   useEffect(() => {
     if (!contest) return;

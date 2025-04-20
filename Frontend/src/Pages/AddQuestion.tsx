@@ -64,7 +64,7 @@ const AddQuestion = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/questions`,
+        `${import.meta.env.VITE_BACKEND_URL}/user/questions`,
         {
           title,
           description,

@@ -44,7 +44,7 @@ const ProfilePage: React.FC = () => {
     const fetchProfileData = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/profile`,
+          `${import.meta.env.VITE_BACKEND_URL}/user/profile`,
           {
             params: {
               userId: userId,

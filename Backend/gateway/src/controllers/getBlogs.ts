@@ -9,10 +9,9 @@ export const getBlogs = async (
   try {
     // Forward the login request to submission-service
 
-    const downstreamRes = await axios.post(
+    const downstreamRes = await axios.get(
       `${process.env.USER_SERVICE_API}/getBlogs`,
-      req.body,
-      { headers: { ...req.headers } } // preserve incoming headers
+      req.body // preserve incoming headers
     );
 
     // Relay status code and JSON payload back to client

@@ -2,17 +2,28 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import { Contest } from "@/Pages/ContestsPage";
+import axios from "axios";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface OngoingContestProps {
   contest: Contest;
+  userId: number;
 }
 
 const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
   const navigate = useNavigate();
   const [contestEnded, setContestEnded] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isRegistered, setIsRegistered] = useState<boolean>(
+    contest.isRegistered || false
+  );
+
+  const userId: Number = useSelector((state: RootState) => state.user.data.id);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -38,6 +49,31 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
 
     return () => clearInterval(timer);
   }, [contest.end_time]);
+
+  const handleRegister = async () => {
+    try {
+      setIsLoading(true);
+      // console.log(userId);
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/user/contests/register`,
+        {
+          userId,
+          contestId: contest.id,
+        }
+      );
+      setIsRegistered(true);
+      toast.success("Successfully registered for contest!");
+    } catch (error) {
+      console.error("Error registering for contest:", error);
+      toast.error("Failed to register for contest");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoToContest = () => {
+    navigate(`/contest/${contest.id}`);
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto mb-6">
@@ -68,10 +104,20 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
         <div className="flex justify-end">
           {!contestEnded && (
             <Button
-              onClick={() => navigate(`/contest/${contest.id}`)}
+              onClick={isRegistered ? handleGoToContest : handleRegister}
+              disabled={isLoading || (isRegistered && contestEnded)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {contest.isRegistered ? "Go to Contest" : "Register"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Registering...
+                </>
+              ) : isRegistered ? (
+                "Go to Contest"
+              ) : (
+                "Register"
+              )}
             </Button>
           )}
         </div>

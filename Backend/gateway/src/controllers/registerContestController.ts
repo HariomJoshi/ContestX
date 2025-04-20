@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import axios from "axios";
 
-export const submitQuestion = async (
+export const registerInContest = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -10,7 +10,7 @@ export const submitQuestion = async (
     // Forward the login request to submission-service
 
     const downstreamRes = await axios.post(
-      `${process.env.SUBMISSION_SERVICE_API}/submit`,
+      `${process.env.USER_SERVICE_API}/contests/register`,
       req.body,
       { headers: { ...req.headers } } // preserve incoming headers
     );

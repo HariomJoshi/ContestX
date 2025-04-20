@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import axios from "axios";
 
 export const createQuestion = async (
   req: Request,
@@ -37,7 +38,7 @@ export const getQuestions = async (
     // Forward the login request to user-service
     // GET req
     const downstreamRes = await axios.get(
-      `${process.env.USER_SERVICE_API}/questions`,
+      `${process.env.USER_SERVICE_API}/questions?page=${req.query.page}&limit=${req.query.limit}`,
       req.body
     );
 
@@ -64,10 +65,9 @@ export const getQuestionById = async (
   try {
     // Forward the login request to user-service
     // POST req
-    const downstreamRes = await axios.post(
+    const downstreamRes = await axios.get(
       `${process.env.USER_SERVICE_API}/questions/${questionId}`,
-      req.body,
-      { headers: { ...req.headers } } // preserve incoming headers
+      req.body
     );
 
     // Relay status code and JSON payload back to client

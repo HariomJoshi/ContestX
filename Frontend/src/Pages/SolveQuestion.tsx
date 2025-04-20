@@ -12,8 +12,6 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertCircle,
   Clock,
@@ -24,6 +22,7 @@ import {
   CheckCircle2,
   XCircle,
   GripVertical,
+  Loader2,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -107,6 +106,7 @@ public class Main {
   const separatorRef = useRef<HTMLDivElement>(null);
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "submissions">(
     "description"
   );
@@ -116,16 +116,12 @@ public class Main {
   const [customOutput, setCustomOutput] = useState("");
   const [isCustomInputOpen, setIsCustomInputOpen] = useState(false);
   const [response, setResponse] = useState<{
-    data?: {
-      success: boolean;
-      message: string;
-      result?: {
-        time: number;
-        memory: number;
-      };
-      output?: string;
-      error?: string;
-    };
+    success: boolean;
+    status: string;
+    output?: string;
+    error?: string;
+    time?: number;
+    memory?: number;
   } | null>(null);
   console.log(question);
 
@@ -139,7 +135,7 @@ public class Main {
     const fetchQuestion = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/questions/${id}`
+          `${import.meta.env.VITE_BACKEND_URL}/user/questions/${id}`
         );
         setQuestion(response.data);
       } catch (error) {
@@ -168,30 +164,26 @@ public class Main {
 
   const handleRunCode = async () => {
     setIsRunning(true);
-    setResultsVisible(true);
+    setResponse(null);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/run`,
+        `${import.meta.env.VITE_BACKEND_URL}/solve/run`,
         {
           code,
           language: selectedLanguage,
-          testCases: testCases, // Only run first test case for quick testing
+          testCases: testCases,
           questionId: id,
         }
       );
-      console.log(response.data);
-      setOutput(response.data.output);
-      setTestResults([
-        {
-          input: testCases[0].input,
-          expectedOutput: testCases[0].output,
-          actualOutput: response.data.output,
-          passed: response.data.output.trim() === testCases[0].output.trim(),
-        },
-      ]);
+      console.log("Run response:", response.data);
+      setResponse(response.data);
     } catch (error) {
       console.error("Error running code:", error);
-      toast.error("Failed to run code");
+      setResponse({
+        success: false,
+        status: "error",
+        error: "Failed to run code. Please try again.",
+      });
     } finally {
       setIsRunning(false);
     }
@@ -202,7 +194,7 @@ public class Main {
     // setResultsVisible(true);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/run`,
+        `${import.meta.env.VITE_BACKEND_URL}/solve/run`,
         {
           code,
           language: selectedLanguage,
@@ -228,12 +220,11 @@ public class Main {
   };
 
   const handleSubmit = async () => {
-    setIsRunning(true);
-    setSubmissionVisible(true);
+    setIsSubmitting(true);
+    setResponse(null);
     try {
       const response = await axios.post(
-        // TODO: send code to backend , backend will load test cases and send them to judge0 api
-        `${import.meta.env.VITE_BACKEND_URL}/submit`,
+        `${import.meta.env.VITE_BACKEND_URL}/solve/submit`,
         {
           code,
           userId,
@@ -243,20 +234,17 @@ public class Main {
           testCases,
         }
       );
-
-      if (response.data.success) {
-        toast.success("All test cases passed!");
-      } else {
-        toast.error(`Failed: ${response.data.message}`);
-      }
-
-      setOutput(response.data.output);
-      setResponse(response);
+      console.log("Submit response:", response.data);
+      setResponse(response.data);
     } catch (error) {
       console.error("Error submitting code:", error);
-      toast.error("Failed to submit code");
+      setResponse({
+        success: false,
+        status: "error",
+        error: "Failed to submit code. Please try again.",
+      });
     } finally {
-      setIsRunning(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -617,14 +605,6 @@ public class Main {
                               {result.expectedOutput}
                             </pre>
                           </div>
-                          <div>
-                            <strong className="text-purple-500">
-                              Your Output:
-                            </strong>
-                            <pre className="mt-1 bg-white dark:bg-gray-900 p-2 rounded">
-                              {result.actualOutput}
-                            </pre>
-                          </div>
                         </div>
                       </div>
                     ))}
@@ -662,44 +642,44 @@ public class Main {
                       <span className="text-sm font-medium">Status</span>
                       <Badge
                         variant={
-                          response?.data?.success ? "secondary" : "destructive"
+                          response?.success ? "secondary" : "destructive"
                         }
                         className="capitalize"
                       >
-                        {response?.data?.message || "Pending"}
+                        {response?.status || "Pending"}
                       </Badge>
                     </div>
-                    {response?.data?.result?.time && (
+                    {response?.time && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Runtime</span>
                         <span className="text-sm text-gray-500">
-                          {response.data.result.time} ms
+                          {response.time} ms
                         </span>
                       </div>
                     )}
-                    {response?.data?.result?.memory && (
+                    {response?.memory && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Memory</span>
                         <span className="text-sm text-gray-500">
-                          {response.data.result.memory} KB
+                          {response.memory} KB
                         </span>
                       </div>
                     )}
-                    {response?.data?.output && (
+                    {response?.output && (
                       <div className="space-y-2">
                         <span className="text-sm font-medium">Output</span>
                         <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-sm overflow-x-auto">
-                          {response.data.output}
+                          {response.output}
                         </pre>
                       </div>
                     )}
-                    {response?.data?.error && (
+                    {response?.error && (
                       <div className="space-y-2">
                         <span className="text-sm font-medium text-red-500">
                           Error
                         </span>
                         <pre className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm overflow-x-auto text-red-500">
-                          {response.data.error}
+                          {response.error}
                         </pre>
                       </div>
                     )}
@@ -710,6 +690,64 @@ public class Main {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="mt-4">
+        <AnimatePresence>
+          {response && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="mt-4"
+            >
+              <Card>
+                <CardContent className="p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Result</h3>
+                      <Badge
+                        variant={
+                          response.success
+                            ? "secondary" // or "default"
+                            : response.status === "wrong_answer"
+                            ? "outline" // or "warning" needs custom
+                            : "destructive"
+                        }
+                      >
+                        {response.status.replace(/_/g, " ")}
+                      </Badge>
+                    </div>
+                    {response.time && response.memory && (
+                      <div className="flex gap-4 text-sm text-gray-500">
+                        <span>Time: {response.time}ms</span>
+                        <span>Memory: {response.memory}KB</span>
+                      </div>
+                    )}
+                    {response.output && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium">Output</h4>
+                        <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-sm overflow-x-auto">
+                          {response.output}
+                        </pre>
+                      </div>
+                    )}
+                    {response.error && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-red-500">
+                          Error
+                        </h4>
+                        <pre className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm overflow-x-auto text-red-500">
+                          {response.error}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

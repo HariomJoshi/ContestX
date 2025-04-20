@@ -34,7 +34,7 @@ const ContestsPage: React.FC = () => {
     const fetchContests = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/contests`
+          `${import.meta.env.VITE_BACKEND_URL}/user/contests`
         );
         setContests(response.data);
         console.log(response.data);
