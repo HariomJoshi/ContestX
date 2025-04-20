@@ -45,6 +45,8 @@ export interface Question {
   description: string;
   testCases: TestCase[];
   constraints: string;
+  inputFormat: string;
+  outputFormat: string;
   tags: string[];
 }
 
@@ -393,6 +395,30 @@ public class Main {
               </div>
               <div className="prose max-w-none">
                 <ReactMarkdown>{question.description}</ReactMarkdown>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <h2 className="text-xl font-bold">Input Format</h2>
+              </div>
+              <div className="prose max-w-none">
+                <ReactMarkdown>{question.inputFormat}</ReactMarkdown>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <h2 className="text-xl font-bold">Output Format</h2>
+              </div>
+              <div className="prose max-w-none">
+                <ReactMarkdown>{question.outputFormat}</ReactMarkdown>
               </div>
             </CardContent>
           </Card>

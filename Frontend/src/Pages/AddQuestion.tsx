@@ -18,6 +18,8 @@ const AddQuestion = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [constraints, setConstraints] = useState("");
+  const [inputFormat, setInputFormat] = useState("");
+  const [outputFormat, setOutputFormat] = useState("");
   const [testCases, setTestCases] = useState<TestCase[]>([
     { input: "", output: "" },
   ]);
@@ -68,6 +70,8 @@ const AddQuestion = () => {
           description,
           constraints,
           testCases,
+          inputFormat,
+          outputFormat,
           tags,
         }
       );
@@ -106,6 +110,28 @@ const AddQuestion = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter question description"
+                required
+                className="min-h-[200px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Input Format</label>
+              <Textarea
+                value={inputFormat}
+                onChange={(e) => setInputFormat(e.target.value)}
+                placeholder="Enter Input format"
+                required
+                className="min-h-[200px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Output Format</label>
+              <Textarea
+                value={outputFormat}
+                onChange={(e) => setOutputFormat(e.target.value)}
+                placeholder="Enter output format"
                 required
                 className="min-h-[200px]"
               />

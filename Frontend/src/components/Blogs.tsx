@@ -1,5 +1,6 @@
 // src/Pages/HomePage.tsx
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import Loader from "./Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
@@ -88,9 +89,18 @@ const Blogs: React.FC = () => {
                   whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
                   onClick={() => handleClick(blog.id)}
                 >
-                  <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{blog.date}</p>
-                  <p className="text-gray-800">{blog.description}</p>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
+                    <p className="text-gray-600 text-sm mb-2">{blog.date}</p>
+                    <ReactMarkdown>
+                      {/* <p className="text-gray-800 mb-4"> */}
+                      {blog.description}
+                      {/* </p> */}
+                    </ReactMarkdown>
+                  </div>
+                  <button className="text-blue-500 hover:text-blue-700 text-sm font-medium">
+                    Read More →
+                  </button>
                 </motion.div>
               ))}
             </motion.div>
