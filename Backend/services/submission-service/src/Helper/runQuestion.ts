@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import { Request } from "express";
 import {
   TestCase,
@@ -7,7 +6,6 @@ import {
   RunQuestionResponse,
 } from "../Types/global";
 import axios from "axios";
-const prisma = new PrismaClient();
 
 export const runQuestion = async (req: Request) => {
   let result: Judge0Result | null = null;

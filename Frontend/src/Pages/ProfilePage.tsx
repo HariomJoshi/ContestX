@@ -11,8 +11,9 @@ import {
 import RatingGraph from "@/components/RatingGraph";
 import axios from "axios";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { fetchContests } from "@/redux/slices/contestSlice";
 
 interface ProfileData {
   name: string;
@@ -39,6 +40,7 @@ const ProfilePage: React.FC = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
+
   const userId = useSelector((state: RootState) => state.user.data.id);
   useEffect(() => {
     const fetchProfileData = async () => {

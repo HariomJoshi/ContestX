@@ -65,7 +65,6 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
   question: propQuestion,
   contestId,
 }) => {
-  const { id } = useParams<{ id: string }>();
   const [question, setQuestion] = useState<Question | null>(
     propQuestion || null
   );
@@ -115,6 +114,7 @@ public class Main {
   const [customInput, setCustomInput] = useState("");
   const [customOutput, setCustomOutput] = useState("");
   const [isCustomInputOpen, setIsCustomInputOpen] = useState(false);
+  const [id, setId] = useState<Number>();
   const [response, setResponse] = useState<{
     success: boolean;
     status: string;
@@ -124,6 +124,10 @@ public class Main {
     memory?: number;
   } | null>(null);
   console.log(question);
+
+  useEffect(() => {
+    setId(question?.id);
+  }, []);
 
   useEffect(() => {
     if (propQuestion) {
@@ -199,6 +203,7 @@ public class Main {
           code,
           language: selectedLanguage,
           customInput,
+          questionId: id,
         }
       );
 

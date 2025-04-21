@@ -135,3 +135,23 @@ export const getContestById = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getUserContests = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  try {
+    const contests = await prisma.userContests.findMany({
+      where: {
+        userId: Number(userId),
+      },
+    });
+
+    res.json(contests);
+  } catch (error: any) {
+    console.error("Error fetching contests:", error);
+    res.status(500).json({
+      error: "Failed to fetch contests",
+      details: error.message,
+      code: error.code,
+    });
+  }
+};

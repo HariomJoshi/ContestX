@@ -74,8 +74,9 @@ export const signup = async (req: Request, res: Response) => {
       email: userData.email,
       password: password,
     };
-
+    console.log("Here");
     const newUser = await pClient.user.create({ data });
+    console.log(newUser);
 
     res.status(201).json({
       message: "User created successfully",

@@ -3,6 +3,7 @@ import {
   createContest,
   getContests,
   getContestById,
+  getUserContests,
 } from "../controllers/contestController";
 import { registerInContest } from "../controllers/registerContestController";
 
@@ -16,6 +17,10 @@ router.get("/", getContests as RequestHandler);
 
 // Get a specific contest by ID
 router.get("/:id/:userId", getContestById as RequestHandler);
+
+// returns contests specific to a user
+// NOTE: this needs to be kept below /:id/:userId route
+router.get("/:userId", getUserContests as RequestHandler);
 
 // Register user for contest
 router.post("/register", registerInContest as RequestHandler);

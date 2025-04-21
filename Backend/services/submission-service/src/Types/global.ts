@@ -16,6 +16,7 @@ export interface Judge0Response {
   message: string | null;
   time: string | null;
   memory: number | null;
+  token: string;
   status: {
     id: number;
     description: string;

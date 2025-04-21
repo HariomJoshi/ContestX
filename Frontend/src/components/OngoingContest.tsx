@@ -6,12 +6,12 @@ import { Clock, Loader2 } from "lucide-react";
 import { Contest } from "@/Pages/ContestsPage";
 import axios from "axios";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { fetchContests } from "@/redux/slices/contestSlice";
 
 interface OngoingContestProps {
   contest: Contest;
-  userId: number;
 }
 
 const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
@@ -19,11 +19,26 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
   const [contestEnded, setContestEnded] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isRegistered, setIsRegistered] = useState<boolean>(
-    contest.isRegistered || false
-  );
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [isOngoing, setIsOngoing] = useState<boolean>(false);
+  const [isFuture, setIsFuture] = useState<boolean>(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const userId = useSelector((state: RootState) => state.user.data.id);
+  const contestState = useSelector((state: RootState) => state.contests);
 
-  const userId: Number = useSelector((state: RootState) => state.user.data.id);
+  useEffect(() => {
+    setIsOngoing(
+      new Date(contest.start_time) <= new Date() &&
+        new Date(contest.end_time) > new Date()
+    );
+
+    setIsFuture(new Date(contest.start_time) > new Date());
+    contestState.contests.map((id: Number) => {
+      if (id == contest.id) {
+        setIsRegistered(true);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -53,7 +68,6 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
   const handleRegister = async () => {
     try {
       setIsLoading(true);
-      // console.log(userId);
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/user/contests/register`,
         {
@@ -61,7 +75,7 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
           contestId: contest.id,
         }
       );
-      setIsRegistered(true);
+      dispatch(fetchContests(userId)); // Refresh contests after registration
       toast.success("Successfully registered for contest!");
     } catch (error) {
       console.error("Error registering for contest:", error);
@@ -73,6 +87,22 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
 
   const handleGoToContest = () => {
     navigate(`/contest/${contest.id}`);
+  };
+
+  const getButtonText = () => {
+    if (isFuture) {
+      return isRegistered ? "Registered" : "Register";
+    } else if (isOngoing) {
+      return isRegistered ? "Go to Contest" : "Register";
+    }
+    return "Contest Ended";
+  };
+
+  const isButtonDisabled = () => {
+    if (isFuture) {
+      return isRegistered || isLoading;
+    }
+    return isLoading || contestEnded;
   };
 
   return (
@@ -102,24 +132,20 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
           </div>
         </div>
         <div className="flex justify-end">
-          {!contestEnded && (
-            <Button
-              onClick={isRegistered ? handleGoToContest : handleRegister}
-              disabled={isLoading || (isRegistered && contestEnded)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Registering...
-                </>
-              ) : isRegistered ? (
-                "Go to Contest"
-              ) : (
-                "Register"
-              )}
-            </Button>
-          )}
+          <Button
+            onClick={isRegistered ? handleGoToContest : handleRegister}
+            disabled={isButtonDisabled()}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {isRegistered ? "Loading..." : "Registering..."}
+              </>
+            ) : (
+              getButtonText()
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

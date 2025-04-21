@@ -195,7 +195,10 @@ const ContestArea: React.FC = () => {
           </div>
           <div className="flex items-center gap-4">
             <Badge variant="secondary">Tab Switches: {tabSwitches}/3</Badge>
-            <Button variant="destructive" onClick={() => navigate("/contests")}>
+            <Button
+              variant="destructive"
+              onClick={() => navigate("/ongoing-contest")}
+            >
               Exit Contest
             </Button>
           </div>
