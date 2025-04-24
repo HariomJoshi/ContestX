@@ -123,6 +123,7 @@ public class Main {
     time?: number;
     memory?: number;
   } | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
   console.log(question);
 
   useEffect(() => {
@@ -166,6 +167,12 @@ public class Main {
     setTestCases(visibleTestCase);
   }, [question?.testCases]);
 
+  const scrollToResult = () => {
+    if (resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleRunCode = async () => {
     setIsRunning(true);
     setResponse(null);
@@ -179,8 +186,8 @@ public class Main {
           questionId: id,
         }
       );
-      console.log("Run response:", response.data);
       setResponse(response.data);
+      setTimeout(scrollToResult, 100); // Small delay to ensure DOM is updated
     } catch (error) {
       console.error("Error running code:", error);
       setResponse({
@@ -188,6 +195,7 @@ public class Main {
         status: "error",
         error: "Failed to run code. Please try again.",
       });
+      setTimeout(scrollToResult, 100);
     } finally {
       setIsRunning(false);
     }
@@ -239,8 +247,8 @@ public class Main {
           testCases,
         }
       );
-      console.log("Submit response:", response.data);
       setResponse(response.data);
+      setTimeout(scrollToResult, 100);
     } catch (error) {
       console.error("Error submitting code:", error);
       setResponse({
@@ -248,6 +256,7 @@ public class Main {
         status: "error",
         error: "Failed to submit code. Please try again.",
       });
+      setTimeout(scrollToResult, 100);
     } finally {
       setIsSubmitting(false);
     }
@@ -307,6 +316,18 @@ public class Main {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Loading Modal */}
+      <Dialog open={isRunning || isSubmitting}>
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="flex flex-col items-center justify-center p-6">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+            <p className="text-lg font-medium">
+              {isRunning ? "Running Code..." : "Submitting Code..."}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div>
@@ -373,118 +394,118 @@ public class Main {
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden relative">
-        {/* Problem Statement Section */}
+        {/* Left Section - Problem Details */}
         <div
-          className="w-full lg:w-auto p-4 space-y-4 overflow-auto"
+          className="w-full lg:w-auto p-6 overflow-y-auto h-[calc(100vh-4rem)]"
           style={{
             width: window.innerWidth >= 1024 ? `${editorWidth}%` : "100%",
           }}
         >
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Lightbulb className="w-5 h-5 text-yellow-500" />
-                <h2 className="text-xl font-bold">Problem Statement</h2>
-              </div>
-              <div className="prose max-w-none">
-                <ReactMarkdown>{question.description}</ReactMarkdown>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <h2 className="text-xl font-bold">Input Format</h2>
-              </div>
-              <div className="prose max-w-none">
-                <ReactMarkdown>{question.inputFormat}</ReactMarkdown>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <h2 className="text-xl font-bold">Output Format</h2>
-              </div>
-              <div className="prose max-w-none">
-                <ReactMarkdown>{question.outputFormat}</ReactMarkdown>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <h2 className="text-xl font-bold">Constraints</h2>
-              </div>
-              <div className="prose max-w-none">
-                <ReactMarkdown>{question.constraints}</ReactMarkdown>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-500" />
-                  <h2 className="text-xl font-bold">Sample Test Cases</h2>
+          <div className="space-y-6">
+            {/* Problem Statement */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Lightbulb className="w-5 h-5 text-yellow-500" />
+                  <h2 className="text-xl font-bold">Problem Statement</h2>
                 </div>
-                <Button onClick={handleRunCode} variant="outline" size="sm">
-                  <FileCode className="w-4 h-4 mr-2" />
-                  Run
-                </Button>
-              </div>
-              <div className="space-y-4">
-                {testCases.map((test, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">Test Case {index + 1}</p>
-                        {testResults[index] &&
-                          (testResults[index].passed ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-red-500" />
-                          ))}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <strong className="text-blue-500">Input:</strong>
-                        <pre className="mt-1 bg-white dark:bg-gray-900 p-2 rounded">
-                          {test.input}
-                        </pre>
-                      </div>
-                      <div>
-                        <strong className="text-green-500">
-                          Expected Output:
-                        </strong>
-                        <pre className="mt-1 bg-white dark:bg-gray-900 p-2 rounded">
-                          {test.output}
-                        </pre>
-                      </div>
-                    </div>
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{question?.description}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Input Format */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-bold">Input Format</h2>
+                </div>
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{question?.inputFormat}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Output Format */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-bold">Output Format</h2>
+                </div>
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{question?.outputFormat}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Constraints */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-bold">Constraints</h2>
+                </div>
+                <div className="prose max-w-none">
+                  <ReactMarkdown>{question?.constraints}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Test Cases */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-blue-500" />
+                    <h2 className="text-xl font-bold">Sample Test Cases</h2>
                   </div>
-                ))}
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <Lock className="w-4 h-4" />
-                  <p>
-                    Additional test cases are hidden and will be used for
-                    evaluation
-                  </p>
+                  <Button onClick={handleRunCode} variant="outline" size="sm">
+                    <FileCode className="w-4 h-4 mr-2" />
+                    Run
+                  </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="space-y-4">
+                  {testCases.map((test, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">Test Case {index + 1}</p>
+                          {testResults[index] &&
+                            (testResults[index].passed ? (
+                              <CheckCircle2 className="w-5 h-5 text-green-500" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-red-500" />
+                            ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <strong className="text-blue-500">Input:</strong>
+                          <pre className="mt-1 bg-white dark:bg-gray-900 p-2 rounded">
+                            {test.input}
+                          </pre>
+                        </div>
+                        <div>
+                          <strong className="text-green-500">
+                            Expected Output:
+                          </strong>
+                          <pre className="mt-1 bg-white dark:bg-gray-900 p-2 rounded">
+                            {test.output}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Resizable Separator */}
@@ -501,62 +522,128 @@ public class Main {
           </div>
         </div>
 
-        {/* Code Editor Section */}
+        {/* Right Section - Editor and Results */}
         <div
-          className="w-full lg:w-auto p-4 lg:border-l"
+          className="w-full lg:w-auto p-6 overflow-y-auto h-[calc(100vh-4rem)]"
           style={{
             width: window.innerWidth >= 1024 ? `${100 - editorWidth}%` : "100%",
           }}
         >
-          <Card className="h-full">
-            <CardContent className="p-4 h-full flex flex-col">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="language-select" className="text-sm">
-                    Language:
-                  </Label>
-                  <div className="px-3 py-1 border rounded bg-gray-100 dark:bg-gray-800">
-                    Java
+          <div className="flex flex-col h-full">
+            {/* Editor Section */}
+            <div className="flex-1">
+              <Card className="h-full">
+                <CardContent className="p-4 h-full flex flex-col">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="language-select" className="text-sm">
+                        Language:
+                      </Label>
+                      <div className="px-3 py-1 border rounded bg-gray-100 dark:bg-gray-800">
+                        Java
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="theme-select" className="text-sm">
+                        Theme:
+                      </Label>
+                      <select
+                        id="theme-select"
+                        value={monacoTheme}
+                        onChange={(e) =>
+                          setMonacoTheme(
+                            e.target.value as "vs-light" | "vs-dark"
+                          )
+                        }
+                        className="p-1 border rounded"
+                      >
+                        <option value="vs-light">Light</option>
+                        <option value="vs-dark">Dark</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="theme-select" className="text-sm">
-                    Theme:
-                  </Label>
-                  <select
-                    id="theme-select"
-                    value={monacoTheme}
-                    onChange={(e) =>
-                      setMonacoTheme(e.target.value as "vs-light" | "vs-dark")
-                    }
-                    className="p-1 border rounded"
+                  <div className="flex-1 min-h-[400px]">
+                    <Editor
+                      height="100%"
+                      defaultLanguage="java"
+                      language="java"
+                      value={code}
+                      onChange={(value) => setCode(value || "")}
+                      theme={monacoTheme}
+                      options={{
+                        fontSize: 18,
+                        minimap: { enabled: false },
+                        lineNumbers: "on",
+                        roundedSelection: false,
+                        scrollBeyondLastLine: false,
+                        readOnly: false,
+                        automaticLayout: true,
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Results Section */}
+            <div ref={resultRef} className="mt-4">
+              <AnimatePresence>
+                {response && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="mt-4"
                   >
-                    <option value="vs-light">Light</option>
-                    <option value="vs-dark">Dark</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex-1 min-h-[400px]">
-                <Editor
-                  height="100%"
-                  defaultLanguage="java"
-                  language="java"
-                  value={code}
-                  onChange={(value) => setCode(value || "")}
-                  theme={monacoTheme}
-                  options={{
-                    fontSize: 18,
-                    minimap: { enabled: false },
-                    lineNumbers: "on",
-                    roundedSelection: false,
-                    scrollBeyondLastLine: false,
-                    readOnly: false,
-                    automaticLayout: true,
-                  }}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Result</h3>
+                            <Badge
+                              variant={
+                                response.success
+                                  ? "secondary"
+                                  : response.status === "wrong_answer"
+                                  ? "outline"
+                                  : "destructive"
+                              }
+                            >
+                              {response.status.replace(/_/g, " ")}
+                            </Badge>
+                          </div>
+                          {response.time && response.memory && (
+                            <div className="flex gap-4 text-sm text-gray-500">
+                              <span>Time: {response.time}ms</span>
+                              <span>Memory: {response.memory}KB</span>
+                            </div>
+                          )}
+                          {response.output && (
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium">Output</h4>
+                              <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-sm overflow-x-auto">
+                                {response.output}
+                              </pre>
+                            </div>
+                          )}
+                          {response.error && (
+                            <div className="space-y-2">
+                              <h4 className="text-sm font-medium text-red-500">
+                                Error
+                              </h4>
+                              <pre className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm overflow-x-auto text-red-500">
+                                {response.error}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -695,64 +782,6 @@ public class Main {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="mt-4">
-        <AnimatePresence>
-          {response && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="mt-4"
-            >
-              <Card>
-                <CardContent className="p-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Result</h3>
-                      <Badge
-                        variant={
-                          response.success
-                            ? "secondary" // or "default"
-                            : response.status === "wrong_answer"
-                            ? "outline" // or "warning" needs custom
-                            : "destructive"
-                        }
-                      >
-                        {response.status.replace(/_/g, " ")}
-                      </Badge>
-                    </div>
-                    {response.time && response.memory && (
-                      <div className="flex gap-4 text-sm text-gray-500">
-                        <span>Time: {response.time}ms</span>
-                        <span>Memory: {response.memory}KB</span>
-                      </div>
-                    )}
-                    {response.output && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium">Output</h4>
-                        <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-sm overflow-x-auto">
-                          {response.output}
-                        </pre>
-                      </div>
-                    )}
-                    {response.error && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-red-500">
-                          Error
-                        </h4>
-                        <pre className="bg-red-50 dark:bg-red-900/20 p-2 rounded text-sm overflow-x-auto text-red-500">
-                          {response.error}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
     </div>
   );
 };
