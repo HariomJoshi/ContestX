@@ -31,8 +31,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { blockContest } from "@/redux/slices/contestSlice";
 
 export interface Contest {
   id: number;
@@ -59,6 +60,7 @@ const ContestArea: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const userId: Number = useSelector((state: RootState) => state.user.data.id);
+  const dispatch = useDispatch();
   useEffect(() => {
     const fetchContest = async () => {
       try {
@@ -119,13 +121,28 @@ const ContestArea: React.FC = () => {
     return () => clearInterval(timer);
   }, [contest]);
 
+  const blockedContests: string[] = useSelector(
+    (state: RootState) => state.contests.blockedContests
+  );
+  useEffect(() => {
+    if (contestId != undefined && blockedContests != undefined) {
+      if (blockedContests.includes(contestId)) {
+        navigate("/");
+      }
+    }
+  }, [contestId, blockedContests]);
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setTabSwitches((prev) => {
           const newCount = prev + 1;
-          if (newCount >= 3) {
+          if (newCount == 3) {
             setShowTabWarning(true);
+          } else if (newCount > 3) {
+            // call block contest reducer
+            dispatch(blockContest(contestId));
+            navigate("/");
           }
           return newCount;
         });

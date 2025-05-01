@@ -4,15 +4,17 @@ import axios from "axios";
 
 interface ContestState {
   status: FetchState;
-  contests: Number[];
+  contests: number[];
+  blockedContests: string[];
 }
 
 const initialState: ContestState = {
   status: FetchState.loaded,
   contests: [],
+  blockedContests: [],
 };
 
-export const fetchContests = createAsyncThunk<Number[], string>(
+export const fetchContests = createAsyncThunk<number[], string>(
   "user/fetchCotests",
   async (userId, thunkAPI) => {
     try {
@@ -20,7 +22,7 @@ export const fetchContests = createAsyncThunk<Number[], string>(
       const contests = await axios.get(
         `${BACKEND_URL}/user/contests/${userId}`
       );
-      const contestIdArr: Number[] = [];
+      const contestIdArr: number[] = [];
       contests.data.map((contest: any) => {
         contestIdArr.push(contest.contestId);
       });
@@ -39,6 +41,14 @@ const contestSlice = createSlice({
     addContest: (state, action) => {
       state.contests = [...state.contests, action.payload];
     },
+    blockContest: (state, action) => {
+      if (!Array.isArray(state.blockedContests)) {
+        state.blockedContests = [action.payload];
+      }
+      if (!state.blockedContests.includes(action.payload)) {
+        state.blockedContests = [...state.blockedContests, action.payload];
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -55,6 +65,6 @@ const contestSlice = createSlice({
   },
 });
 
-export const { addContest } = contestSlice.actions;
+export const { addContest, blockContest } = contestSlice.actions;
 
 export default contestSlice.reducer;

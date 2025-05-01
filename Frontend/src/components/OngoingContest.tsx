@@ -22,6 +22,7 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
   const [isRegistered, setIsRegistered] = useState<boolean>(false);
   const [isOngoing, setIsOngoing] = useState<boolean>(false);
   const [isFuture, setIsFuture] = useState<boolean>(false);
+  const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
   const dispatch = useDispatch<AppDispatch>();
   const userId = useSelector((state: RootState) => state.user.data.id);
   const contestState = useSelector((state: RootState) => state.contests);
@@ -39,6 +40,44 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
       }
     });
   }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isOngoing) {
+        setTabSwitchCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= 3) {
+            handleExitContest();
+          }
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isOngoing]);
+
+  const handleExitContest = async () => {
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/user/contests/exit`,
+        {
+          userId,
+          contestId: contest.id,
+        }
+      );
+      toast.error(
+        "You have been removed from the contest due to multiple tab switches"
+      );
+      navigate("/contests");
+    } catch (error) {
+      console.error("Error exiting contest:", error);
+      toast.error("Failed to exit contest");
+    }
+  };
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -75,7 +114,7 @@ const OngoingContest: React.FC<OngoingContestProps> = ({ contest }) => {
           contestId: contest.id,
         }
       );
-      dispatch(fetchContests(userId)); // Refresh contests after registration
+      dispatch(fetchContests(userId));
       toast.success("Successfully registered for contest!");
     } catch (error) {
       console.error("Error registering for contest:", error);

@@ -76,29 +76,11 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
     "vs-dark"
   );
   const userId = useSelector((state: RootState) => state.user.data.id);
-  const [code, setCode] = useState(`import java.util.*;
-
-public class Main {
- 
-    public static void main(String[] args) {
-        try {
-            int t;
-            Scanner scan = new Scanner(System.in);
-            t = scan.nextInt();
-            while(t-- != 0){
-                solve(scan);
-            }
-            scan.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new NullPointerException("Some Error Occured");
-        }
-    }
-
-    private static void solve(Scanner scan){
-        // Write your solution here        
-    }
+  const [halfCode, setHalfCode] =
+    useState(`private static void solve(Scanner scan){
+    // Write your solution here        
 }`);
+  const [code, setCode] = useState("");
   const [resultsVisible, setResultsVisible] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [editorWidth, setEditorWidth] = useState(50); // percentage
@@ -129,6 +111,30 @@ public class Main {
   useEffect(() => {
     setId(question?.id);
   }, []);
+
+  useEffect(() => {
+    setCode(`import java.util.*;
+
+      public class Main {
+       
+          public static void main(String[] args) {
+              try {
+                  int t;
+                  Scanner scan = new Scanner(System.in);
+                  t = scan.nextInt();
+                  while(t-- != 0){
+                      solve(scan);
+                  }
+                  scan.close();
+              } catch (Exception e) {
+                  e.printStackTrace();
+                  throw new NullPointerException("Some Error Occured");
+              }
+          }
+      
+          ${halfCode}
+      }`);
+  }, [halfCode]);
 
   useEffect(() => {
     if (propQuestion) {
@@ -298,6 +304,45 @@ public class Main {
     };
   }, [isDragging]);
 
+  const prevCodeRef = useRef<string>(halfCode);
+
+  // handling code change
+  const handleChange = (value: string | undefined) => {
+    const newCode = value ?? "";
+    const prevCode = prevCodeRef.current;
+    console.log(newCode.length);
+    console.log(prevCode.length);
+
+    // if the new text is more than 10 chars longer than before, reject it
+    if (newCode.length > prevCode.length + 20) {
+      // reset back to the previous value
+      console.log("rejected");
+      setHalfCode(prevCode);
+      editorRef.current?.setValue(prevCode);
+    } else {
+      // accept the change
+      setHalfCode(newCode);
+      prevCodeRef.current = newCode;
+    }
+  };
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const handleEditorMount = (editor: any) => {
+    // Disable copy-paste
+    editorRef.current = editor;
+    editor.onKeyDown((e: any) => {
+      if ((e.ctrlKey || e.metaKey) && (e.keyCode === 67 || e.keyCode === 86)) {
+        e.preventDefault();
+        toast.error("Copy-paste is disabled during contests");
+      }
+    });
+
+    // Disable context menu
+    editor.onContextMenu((e: any) => {
+      e.preventDefault();
+      toast.error("Right-click is disabled during contests");
+    });
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -309,7 +354,7 @@ public class Main {
   if (!question) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <div className="text-xl text-red-500">Question not found</div>
+        <div className="text-xl text-red-500">Question not f ound</div>
       </div>
     );
   }
@@ -319,7 +364,7 @@ public class Main {
       {/* Loading Modal */}
       <Dialog open={isRunning || isSubmitting}>
         <DialogContent className="sm:max-w-[425px]">
-          <div className="flex flex-col items-center justify-center p-6">
+          <div className="flex flex-col     items-center justify-center p-6">
             <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
             <p className="text-lg font-medium">
               {isRunning ? "Running Code..." : "Submitting Code..."}
@@ -567,9 +612,11 @@ public class Main {
                       height="100%"
                       defaultLanguage="java"
                       language="java"
-                      value={code}
-                      onChange={(value) => setCode(value || "")}
+                      value={halfCode}
+                      onChange={handleChange}
+                      // onChange={(value) => setHalfCode(value || "")}
                       theme={monacoTheme}
+                      onMount={handleEditorMount}
                       options={{
                         fontSize: 18,
                         minimap: { enabled: false },
@@ -578,6 +625,7 @@ public class Main {
                         scrollBeyondLastLine: false,
                         readOnly: false,
                         automaticLayout: true,
+                        contextmenu: false, // Disable context menu
                       }}
                     />
                   </div>
