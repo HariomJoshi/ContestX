@@ -98,7 +98,6 @@ Run services individually or use Docker (Docker setup coming soon).
 ## 🛣️ Roadmap
 
 - [ ] Code execution support
-- [ ] Admin panel
 - [ ] Contest creation & leaderboard
 - [ ] Docker Compose setup
 - [ ] Live deployment
