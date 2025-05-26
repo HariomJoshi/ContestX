@@ -11,11 +11,13 @@
 ## 🛠️ Tech Stack
 
 ### 🌟 Frontend
+
 - **React.js** – Component-based UI
 - **Redux** – State management
 - **Tailwind CSS** – Utility-first styling framework
 
 ### 🔧 Backend
+
 - **Node.js** with **Express**
 - **Microservices Architecture** with a central **Gateway**
 - **Prisma ORM** with **PostgreSQL** as the database
@@ -46,6 +48,7 @@ ContestX/
 ## 🧪 Getting Started
 
 ### Prerequisites
+
 - Node.js
 - PostgreSQL
 - Redis
@@ -54,6 +57,7 @@ ContestX/
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/HariomJoshi/ContestX.git
 cd ContestX

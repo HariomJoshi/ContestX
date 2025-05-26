@@ -13,6 +13,7 @@ declare -a SERVICES=(
 )
 
 # absolute path to project root
+# $0 is our current path in which this script is called
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 # 1) launch Docker stack (compose file lives in backend/)
