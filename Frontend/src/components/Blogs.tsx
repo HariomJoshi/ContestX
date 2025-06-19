@@ -45,6 +45,7 @@ const Blogs: React.FC = () => {
   const itemsPerPage = 9; // Change to 12 if needed
 
   useEffect(() => {
+    console.log("running");
     dispatch(fetchBlogs());
   }, [dispatch]);
 

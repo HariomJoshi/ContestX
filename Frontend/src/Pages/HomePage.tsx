@@ -11,10 +11,13 @@ const HomePage: React.FC = () => {
   const { id } = useParams();
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
-    if (id != null) {
+    console.log("Here");
+    console.log(id);
+    if (id) {
+      console.log("dispatch calling....");
       dispatch(fetchUserData(id));
     }
-  }, [id]);
+  }, [dispatch, id]);
 
   const status: FetchState = useSelector((state: RootState) => {
     // console.log(state.user);

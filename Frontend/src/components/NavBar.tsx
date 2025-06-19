@@ -26,10 +26,12 @@ const NavBar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const id = useSelector((state: RootState) => state.user.data.id);
+  console.log(id);
 
   // Navigation items
   const navItems = [
-    { href: "/", label: "Home", icon: <HomeIcon className="w-5 h-5" /> },
+    { href: `/${id}`, label: "Home", icon: <HomeIcon className="w-5 h-5" /> },
     {
       href: "/make-contest",
       label: "Make Your Contest",

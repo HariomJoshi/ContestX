@@ -9,6 +9,7 @@ export const fetchUserData = createAsyncThunk<UserType, string>(
   async (userId, thunkAPI) => {
     // payload creator
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    console.log("fetching user data ");
     try {
       const response = await axios.get(
         `${BACKEND_URL}/getUser?userId=${userId}`

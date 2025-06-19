@@ -29,7 +29,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/" element={<UserRoutes />}>
-          <Route index element={<HomePage />} />
+          <Route path=":id" element={<HomePage />} />
           <Route path="/blog/:id" element={<BlogRenderer />} />
           <Route element={<PrivateRoute />}>
             {/* make this route protected */}
