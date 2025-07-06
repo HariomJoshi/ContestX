@@ -146,17 +146,19 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
 
   useEffect(() => {
     if (!socket) return;
-
     function handleSubmissionResult(ev: MessageEvent) {
       let submission: SubmissionUpdate;
       // parsing the WebSocket message
+      let temp: { type: string; data: SubmissionUpdate };
       try {
-        submission = JSON.parse(ev.data as string);
+        temp = JSON.parse(ev.data as string);
+        submission = temp.data;
       } catch (err) {
-        console.error("Bad WS payload:", ev.data);
+        console.error("Bad WS payload:", ev);
         return; // or handle non‑JSON frames
       }
-      if (ev.type === "submission-result") {
+      if (temp.type === "submission-update") {
+        console.log("Submission update received:", submission);
         setResponse({
           success: submission.status === "success",
           status: submission.status,
@@ -169,6 +171,8 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
             resultRef.current.scrollIntoView({ behavior: "smooth" });
           }
         }, 100);
+      } else {
+        console.warn("Unknown message type:", ev);
       }
     }
 

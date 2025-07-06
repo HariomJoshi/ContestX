@@ -2,13 +2,16 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import WebSocket, { WebSocketServer } from "ws";
-import { SubmissionUpdate } from "../types/global"; // Assuming you have a types file for SubmissionUpdate
+import submissionController from "../controllers/submissionController";
 dotenv.config();
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-const clients = new Map<string, WebSocket>();
+export const clients = new Map<string, WebSocket>();
+
+// post all the data to the submission controller, in order to send it to the client
+app.post("/submission-update", submissionController);
 
 const server = app.listen(process.env.PORT, () => {
   console.log("Listening to port " + process.env.PORT);
@@ -49,7 +52,8 @@ wss.on("connection", (ws) => {
       if (parsed.type === "register") {
         // First message: client sends its userId
         userId = parsed.userId;
-        clients.set(userId, ws);
+        clients.set(String(userId), ws);
+        // console.log(clients);
         console.log(`✅ Registered client: ${userId}`);
       } else if (parsed.type === "private-message") {
         // just for example, handle private messages
@@ -58,28 +62,6 @@ wss.on("connection", (ws) => {
         if (recipient && recipient.readyState === WebSocket.OPEN) {
           recipient.send(JSON.stringify({ from: userId, content }));
         }
-      } else if (parsed.type === "submission-update") {
-        // handle submission updates
-        const res: SubmissionUpdate = parsed.data;
-        const userId: string = parsed.id;
-
-        // Broadcast to all clients or send to specific user
-        if (clients.has(userId)) {
-          const recipient = clients.get(userId);
-          if (recipient && recipient.readyState === WebSocket.OPEN) {
-            recipient.send(
-              JSON.stringify({
-                type: "submission-update",
-                data: res,
-              })
-            );
-          } else {
-            console.error(`Client ${userId} is not connected`);
-          }
-        } else {
-          console.error(`No client found with userId: ${userId}`);
-        }
-        console.log(`Submission update sent to ${userId}:`, res);
       } else {
         // handle other messages (e.g., broadcast)
         console.log("Logic is not supposed to be here, but received:", parsed);
