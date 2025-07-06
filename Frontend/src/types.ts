@@ -42,3 +42,19 @@ export type Blogs = {
   imageUrl: String;
   Content: JSON;
 };
+
+interface SubmissionUpdate {
+  submissionId: string;
+  status: string;
+  message: string;
+  timestamp: string;
+}
+
+interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  score: number;
+  lastSubmissionTime: Date;
+  totalSubmissions: number;
+  solvedProblems: Set<string>;
+}

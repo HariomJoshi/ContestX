@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   AlertCircle,
-  Clock,  
+  Clock,
   Code2,
   FileCode,
   Lightbulb,
@@ -32,6 +32,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Message } from "react-hook-form";
+import { useSocket } from "@/socket/SocketContext";
+import { Socket } from "dgram";
 
 interface TestCase {
   input: string;
@@ -59,6 +62,15 @@ interface TestResult {
 interface SolveQuestionProps {
   question: Question;
   contestId?: number;
+}
+
+interface SubmissionUpdate {
+  success: boolean;
+  status: string;
+  output?: string;
+  error?: string;
+  time?: number;
+  memory?: number;
 }
 
 const SolveQuestion: React.FC<SolveQuestionProps> = ({
@@ -97,20 +109,72 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
   const [customOutput, setCustomOutput] = useState("");
   const [isCustomInputOpen, setIsCustomInputOpen] = useState(false);
   const [id, setId] = useState<Number>();
-  const [response, setResponse] = useState<{
-    success: boolean;
-    status: string;
-    output?: string;
-    error?: string;
-    time?: number;
-    memory?: number;
-  } | null>(null);
+  const [response, setResponse] = useState<SubmissionUpdate | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   console.log(question);
 
   useEffect(() => {
     setId(question?.id);
   }, []);
+
+  const socket = useSocket();
+
+  // effect to register the userId with the socket server
+  useEffect(() => {
+    if (!socket || !userId) return; // wait for both socket & id
+
+    // keep the handler in a ref so React re‑renders don't break removeEventListener
+    function handleOpen() {
+      if (socket) {
+        socket.send(
+          JSON.stringify({
+            type: "register",
+            userId,
+          })
+        );
+      }
+    }
+
+    if (socket.readyState === WebSocket.OPEN) {
+      handleOpen(); //already open → send now
+    } else if (socket.readyState === WebSocket.CONNECTING) {
+      socket.addEventListener("open", handleOpen, { once: true }); // wait
+    }
+
+    return () => socket.removeEventListener("open", handleOpen);
+  }, [socket, userId]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    function handleSubmissionResult(ev: MessageEvent) {
+      let submission: SubmissionUpdate;
+      // parsing the WebSocket message
+      try {
+        submission = JSON.parse(ev.data as string);
+      } catch (err) {
+        console.error("Bad WS payload:", ev.data);
+        return; // or handle non‑JSON frames
+      }
+      if (ev.type === "submission-result") {
+        setResponse({
+          success: submission.status === "success",
+          status: submission.status,
+          output: submission.output,
+          time: submission.time,
+          memory: submission.memory,
+        });
+        setTimeout(() => {
+          if (resultRef.current) {
+            resultRef.current.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      }
+    }
+
+    socket.addEventListener("message", handleSubmissionResult);
+    return () => socket.removeEventListener("message", handleSubmissionResult);
+  }, [socket]);
 
   useEffect(() => {
     setCode(`import java.util.*;
