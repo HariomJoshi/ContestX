@@ -258,10 +258,13 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
           language: selectedLanguage,
           testCases: testCases,
           questionId: id,
+          userId: userId,
         }
       );
-      setResponse(response.data);
-      setTimeout(scrollToResult, 100); // Small delay to ensure DOM is updated
+      console.log(response);
+      // all this is asynchronous now, so commenting it
+      // setResponse(response.data);
+      // setTimeout(scrollToResult, 100); // Small delay to ensure DOM is updated
     } catch (error) {
       console.error("Error running code:", error);
       setResponse({
@@ -286,18 +289,19 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
           language: selectedLanguage,
           customInput,
           questionId: id,
+          userId: userId,
         }
       );
-
-      setCustomOutput(response.data.output);
-      setTestResults([
-        {
-          input: customInput,
-          expectedOutput: "",
-          actualOutput: response.data.output,
-          passed: true,
-        },
-      ]);
+      console.log(response);
+      // setCustomOutput(response.data.output);
+      // setTestResults([
+      //   {
+      //     input: customInput,
+      //     expectedOutput: "",
+      //     actualOutput: response.data.output,
+      //     passed: true,
+      //   },
+      // ]);
     } catch (error) {
       console.error("Error running code:", error);
       toast.error("Failed to run code");
@@ -321,7 +325,9 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
           testCases,
         }
       );
-      setResponse(response.data);
+      console.log(response);
+      // commenting it, as we are doing it asynchronously
+      // setResponse(response.data);
       setTimeout(scrollToResult, 100);
     } catch (error) {
       console.error("Error submitting code:", error);
@@ -718,14 +724,16 @@ const SolveQuestion: React.FC<SolveQuestionProps> = ({
                             <h3 className="text-lg font-semibold">Result</h3>
                             <Badge
                               variant={
-                                response.success
+                                response && response.success
                                   ? "secondary"
                                   : response.status === "wrong_answer"
                                   ? "outline"
                                   : "destructive"
                               }
                             >
-                              {response.status.replace(/_/g, " ")}
+                              {response &&
+                                response.status &&
+                                response.status.replace(/_/g, " ")}
                             </Badge>
                           </div>
                           {response.time && response.memory && (

@@ -25,7 +25,7 @@ export const runCode = async (req: Request, res: Response) => {
       if (!question) {
         return res.status(404).json({ error: "Question not found" });
       }
-
+      // converting string format of test cases to JSON
       const parsedTestCases = JSON.parse(question.testCases);
       if (!Array.isArray(parsedTestCases) || parsedTestCases.length === 0) {
         return res.status(400).json({ error: "Invalid test cases format" });

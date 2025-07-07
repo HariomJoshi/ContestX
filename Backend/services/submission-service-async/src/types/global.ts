@@ -1,7 +1,11 @@
 export interface RunRequest {
   code: string;
   language: string;
-  testCases: string;
+  testCases?: string;
+  customInput?: string; // Optional custom input for quick testing
+  questionId: string; // Optional question ID for context
+  userId: string; // User ID for tracking submissions
+  contestId?: string; // Optional contest ID for context
 }
 
 export interface TestCase {
@@ -47,5 +51,14 @@ export interface Submission {
   id: string; // unique id for matching frontend
   code: string;
   language: string;
-  testCases: string;
+  testCases: any; // JSON string of test cases
+}
+
+export interface SubmissionUpdate {
+  success: boolean;
+  status: string;
+  output?: string;
+  error?: string;
+  time?: number;
+  memory?: number;
 }

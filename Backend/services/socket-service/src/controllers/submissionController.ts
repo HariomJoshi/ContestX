@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { SubmissionUpdate } from "../types/global"; // Assuming you have a types file for SubmissionUpdate
-import { clients } from "../src/index"; // Import the clients map from your main server file
+import { SubmissionUpdate } from "../../types/global"; // Assuming you have a types file for SubmissionUpdate
+import { clients } from "../index"; // Import the clients map from your main server file
 // node imports reference, not the copy, so we wll have all the clients
 import WebSocket from "ws";
 const submissionController = (req: Request, res: Response) => {

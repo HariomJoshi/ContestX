@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import WebSocket, { WebSocketServer } from "ws";
-import submissionController from "../controllers/submissionController";
+import submissionController from "./controllers/submissionController";
 dotenv.config();
 const app = express();
 
