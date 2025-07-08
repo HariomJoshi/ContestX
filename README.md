@@ -53,6 +53,7 @@ ContestX/
 - PostgreSQL
 - Redis
 - Docker
+- Websockets
 
 ### Installation
 
@@ -85,7 +86,16 @@ Create `.env` files in each service directory (examples provided in each service
 
 4. **Start services**
 
-Run services individually or use Docker (Docker setup coming soon).
+If on Mac OS:
+- Start frontend using `npm run dev`
+- For backend, just give execution permission to start-all.sh using `chmod +x start-all.sh`
+- execute `./start-all.sh`
+- Go inside backend and run `docker compose up` (you need to have docker installed in your computer)
+  
+On windows OS
+- Start frontend using `npm run dev`
+- Go to different services and start them seperately in different terminals
+- Go inside backend and run `docker compose up` (you need to have docker installed in your computer)
 
 ---
 
