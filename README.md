@@ -40,6 +40,7 @@ ContestX/
         ├── auth-service/     # User registration and login
         ├── user-service/     # Profile and user-related data
         ├── submission-service/ # Code/question submission logic
+        ├── submission-service-async/ # Code asynchronous submission logic
         └── socket-service/   # WebSocket server for real-time communication
 ```
 
