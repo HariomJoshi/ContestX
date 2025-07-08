@@ -1,26 +1,50 @@
+// src/queue/runConsumer.ts
 import Redis from "ioredis";
-// import { runQuestion } from "../helper/runQuestion";
-//
+// import { runQuestion } from "../runner/runQuestion";
+import { runCode } from "../controllers/runController";
+import { submitCode } from "../controllers/submitController";
+import axios from "axios";
+import { RunQuestionResponse } from "../types/global";
 
 const redis = new Redis();
 
-async function listen() {
+export async function listenSubmitQueue() {
   while (true) {
     try {
-      const data = await redis.brpop("submissionQueue", 0); // blocking pop
+      const data = await redis.brpop("submissionQueue", 0); // blocks until item
       if (data) {
-        const submission = JSON.parse(data[1]);
-        console.log("⚙️  Processing:", submission);
+        const job = JSON.parse(data[1]);
+        console.log("🔁 submitting Job:", job);
 
-        // const result = await runQuestion(submission); // actual eval logic
-        // running will de done by controller
-        // You can send result back via WebSocket or store in DB
-        // console.log("✅ Result:", result);
+        const result = await submitCode(job);
+        const downstreamRes = await axios.post(
+          `${process.env.SOCKET_SERVICE_API}/submission-update`,
+          {
+            userId: String(job.userId),
+            data: {
+              output: result?.output,
+              questionId: job.questionId,
+              submissionId: job.submissionId,
+              result: result?.success,
+              status: result?.status,
+              error: result?.error,
+            },
+          },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        // Relay status code and JSON payload back to client
+        console.log(
+          "🔁 runCode response status:",
+          downstreamRes.status,
+          downstreamRes.data
+        );
+        console.log("✅ submission Result:", result);
       }
     } catch (err) {
-      console.error("❌ Worker error:", err);
+      console.error("❌ Error in submissionQueue worker:", err);
     }
   }
 }
 
-listen();
+listenSubmitQueue();

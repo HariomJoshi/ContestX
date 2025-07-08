@@ -48,7 +48,6 @@ export interface RunQuestionResponse {
 }
 
 export interface Submission {
-  id: string; // unique id for matching frontend
   code: string;
   language: string;
   testCases: any; // JSON string of test cases

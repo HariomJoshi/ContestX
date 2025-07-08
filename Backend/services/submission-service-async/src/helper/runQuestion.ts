@@ -13,7 +13,7 @@ export const runQuestion = async (
 ): Promise<RunQuestionResponse | undefined> => {
   let result: Judge0Result | null = null;
   try {
-    const { id, code, language, testCases } = submission;
+    const { code, language, testCases } = submission;
 
     if (!Array.isArray(testCases) || testCases.length === 0) {
       const res: RunQuestionResponse = {
